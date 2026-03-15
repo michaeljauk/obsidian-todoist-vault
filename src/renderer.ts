@@ -8,10 +8,45 @@ function formatTaskMeta(task: Task): string {
   return `<!-- ${parts.join(' ')} -->`
 }
 
-function renderTask(task: Task, isCompleted: boolean): string {
-  const checkbox = isCompleted ? '[x]' : '[ ]'
-  const meta = formatTaskMeta(task)
-  return `- ${checkbox} ${task.content} ${meta}`
+function renderTaskTree(
+  taskId: string,
+  childrenMap: Map<string, Task[]>,
+  isCompleted: (t: Task) => boolean,
+  indent: number,
+  lines: string[],
+): void {
+  const children = childrenMap.get(taskId) ?? []
+  for (const task of children) {
+    const prefix = '  '.repeat(indent)
+    const checkbox = isCompleted(task) ? '[x]' : '[ ]'
+    lines.push(`${prefix}- ${checkbox} ${task.content} ${formatTaskMeta(task)}`)
+    renderTaskTree(task.id, childrenMap, isCompleted, indent + 1, lines)
+  }
+}
+
+function renderTaskList(
+  rootTasks: Task[],
+  allTasks: Task[],
+  isCompleted: (t: Task) => boolean,
+): string[] {
+  // Build map: parentId → children (only within this section's task set)
+  const ids = new Set(allTasks.map((t) => t.id))
+  const childrenMap = new Map<string, Task[]>()
+  for (const task of allTasks) {
+    const parentId = task.parentId && ids.has(task.parentId) ? task.parentId : null
+    if (parentId) {
+      if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
+      childrenMap.get(parentId)!.push(task)
+    }
+  }
+
+  const lines: string[] = []
+  for (const task of rootTasks) {
+    const checkbox = isCompleted(task) ? '[x]' : '[ ]'
+    lines.push(`- ${checkbox} ${task.content} ${formatTaskMeta(task)}`)
+    renderTaskTree(task.id, childrenMap, isCompleted, 1, lines)
+  }
+  return lines
 }
 
 export function renderProject(
@@ -35,16 +70,20 @@ export function renderProject(
   lines.push('')
 
   const isCompleted = (t: Task) => t.completedAt !== null
-  const activeTasks = tasks.filter((t) => !isCompleted(t))
-  const displayTasks = includeCompleted ? tasks : activeTasks
+  const displayTasks = includeCompleted ? tasks : tasks.filter((t) => !isCompleted(t))
 
-  // Build section map
+  // Only top-level tasks (no parent, or parent is in a different project/not fetched)
+  const taskIds = new Set(displayTasks.map((t) => t.id))
+  const isRootTask = (t: Task) => !t.parentId || !taskIds.has(t.parentId)
+
+  // Build section map (root tasks only — children are rendered recursively)
   const sectionMap = new Map<string | null, Task[]>()
   sectionMap.set(null, [])
   for (const section of sections) {
     sectionMap.set(section.id, [])
   }
   for (const task of displayTasks) {
+    if (!isRootTask(task)) continue
     const key = task.sectionId ?? null
     if (!sectionMap.has(key)) sectionMap.set(key, [])
     sectionMap.get(key)!.push(task)
@@ -52,14 +91,12 @@ export function renderProject(
 
   // Render named sections
   for (const section of sections) {
-    const sectionTasks = sectionMap.get(section.id) ?? []
-    if (sectionTasks.length === 0 && !includeCompleted) continue
+    const rootTasks = sectionMap.get(section.id) ?? []
+    if (rootTasks.length === 0) continue
 
     lines.push(`## ${section.name}`)
     lines.push('')
-    for (const task of sectionTasks) {
-      lines.push(renderTask(task, isCompleted(task)))
-    }
+    lines.push(...renderTaskList(rootTasks, displayTasks, isCompleted))
     lines.push('')
   }
 
@@ -68,9 +105,7 @@ export function renderProject(
   if (unsectioned.length > 0) {
     lines.push('## Inbox')
     lines.push('')
-    for (const task of unsectioned) {
-      lines.push(renderTask(task, isCompleted(task)))
-    }
+    lines.push(...renderTaskList(unsectioned, displayTasks, isCompleted))
     lines.push('')
   }
 

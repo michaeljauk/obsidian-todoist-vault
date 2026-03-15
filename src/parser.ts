@@ -5,9 +5,8 @@
 export function parseTaskStates(content: string): Map<string, boolean> {
   const result = new Map<string, boolean>()
 
-  // Match lines like: - [ ] Task content <!-- id:abc123 ... -->
-  //                   - [x] Task content <!-- id:abc123 ... -->
-  const lineRe = /^- \[([ xX])\] .+<!-- id:(\S+)/gm
+  // Match lines like:   - [ ] Task content <!-- id:abc123 ... -->  (any indent)
+  const lineRe = /^\s*- \[([ xX])\] .+<!-- id:(\S+)/gm
   let match: RegExpExecArray | null
 
   while ((match = lineRe.exec(content)) !== null) {
