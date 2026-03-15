@@ -1,0 +1,73 @@
+import { requestUrl } from 'obsidian'
+import { TodoistApi } from '@doist/todoist-api-typescript'
+import type { Project, Section, Task, CustomFetch } from '@doist/todoist-api-typescript'
+
+// Obsidian-compatible fetch adapter (mirrors the SDK's own obsidian-fetch-adapter)
+const obsidianFetch: CustomFetch = async (url, options) => {
+  const res = await requestUrl({
+    url: url.toString(),
+    method: (options?.method ?? 'GET') as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+    headers: options?.headers as Record<string, string> | undefined,
+    body: options?.body as string | undefined,
+    throw: false,
+  })
+  return {
+    ok: res.status >= 200 && res.status < 300,
+    status: res.status,
+    statusText: '',
+    headers: res.headers as Record<string, string>,
+    text: () => Promise.resolve(res.text),
+    json: () => Promise.resolve(res.json as unknown),
+  }
+}
+
+export class TodoistClient {
+  private api: TodoistApi
+
+  constructor(apiToken: string) {
+    this.api = new TodoistApi(apiToken, { customFetch: obsidianFetch })
+  }
+
+  async getProjects(): Promise<Project[]> {
+    const results: Project[] = []
+    let cursor: string | undefined
+
+    do {
+      const page = await this.api.getProjects({ cursor })
+      results.push(...page.results)
+      cursor = page.nextCursor ?? undefined
+    } while (cursor)
+
+    return results
+  }
+
+  async getSections(projectId: string): Promise<Section[]> {
+    const results: Section[] = []
+    let cursor: string | undefined
+
+    do {
+      const page = await this.api.getSections({ projectId, cursor })
+      results.push(...page.results)
+      cursor = page.nextCursor ?? undefined
+    } while (cursor)
+
+    return results
+  }
+
+  async getTasks(projectId: string): Promise<Task[]> {
+    const results: Task[] = []
+    let cursor: string | undefined
+
+    do {
+      const page = await this.api.getTasks({ projectId, cursor })
+      results.push(...page.results)
+      cursor = page.nextCursor ?? undefined
+    } while (cursor)
+
+    return results
+  }
+
+  async closeTask(taskId: string): Promise<void> {
+    await this.api.closeTask(taskId)
+  }
+}

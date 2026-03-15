@@ -1,0 +1,11 @@
+{
+  "id": "obsidian-todoist-vault",
+  "name": "Todoist Vault Sync",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Syncs Todoist projects and tasks to markdown files in your vault",
+  "author": "Michael Jauk",
+  "authorUrl": "https://github.com/michaeljauk",
+  "fundingUrl": "",
+  "isDesktopOnly": true
+}
