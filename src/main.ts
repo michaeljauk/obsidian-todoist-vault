@@ -25,7 +25,7 @@ export default class TodoistVaultPlugin extends Plugin {
       callback: async () => {
         new Notice('[TodoistVault] Syncing…')
         try {
-          await runSync(this.app, this.settings)
+          await this.runSync()
           new Notice('[TodoistVault] Sync complete')
         } catch (err) {
           console.error('[TodoistVault] Sync failed:', err)
@@ -47,6 +47,10 @@ export default class TodoistVaultPlugin extends Plugin {
     console.log('[TodoistVault] Plugin unloaded')
   }
 
+  async runSync() {
+    await runSync(this.app, this.settings)
+  }
+
   private registerSyncInterval() {
     if (this.syncIntervalId !== null) {
       window.clearInterval(this.syncIntervalId)
@@ -55,7 +59,7 @@ export default class TodoistVaultPlugin extends Plugin {
     const intervalMs = this.settings.syncIntervalMinutes * 60 * 1000
     this.syncIntervalId = window.setInterval(async () => {
       try {
-        await runSync(this.app, this.settings)
+        await this.runSync()
       } catch (err) {
         console.error('[TodoistVault] Interval sync failed:', err)
       }

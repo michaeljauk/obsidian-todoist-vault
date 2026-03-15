@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian'
+import { App, Notice, PluginSettingTab, Setting } from 'obsidian'
 import type TodoistVaultPlugin from './main'
 
 export interface TodoistVaultSettings {
@@ -97,6 +97,26 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
           this.plugin.settings.includeCompleted = value
           await this.plugin.saveSettings()
         }),
+      )
+
+    new Setting(containerEl)
+      .setName('Sync now')
+      .setDesc('Manually trigger a full sync from Todoist')
+      .addButton((btn) =>
+        btn
+          .setButtonText('Sync now')
+          .setCta()
+          .onClick(async () => {
+            btn.setButtonText('Syncing…').setDisabled(true)
+            try {
+              await this.plugin.runSync()
+              new Notice('[TodoistVault] Sync complete')
+            } catch {
+              new Notice('[TodoistVault] Sync failed — see console')
+            } finally {
+              btn.setButtonText('Sync now').setDisabled(false)
+            }
+          }),
       )
   }
 }
