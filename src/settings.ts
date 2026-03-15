@@ -7,6 +7,7 @@ export interface TodoistVaultSettings {
   syncIntervalMinutes: number
   projectFilter: string[]
   includeCompleted: boolean
+  bidirectionalSync: boolean
 }
 
 export const DEFAULT_SETTINGS: TodoistVaultSettings = {
@@ -15,6 +16,7 @@ export const DEFAULT_SETTINGS: TodoistVaultSettings = {
   syncIntervalMinutes: 15,
   projectFilter: [],
   includeCompleted: false,
+  bidirectionalSync: false,
 }
 
 export class TodoistVaultSettingTab extends PluginSettingTab {
@@ -95,6 +97,18 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.includeCompleted).onChange(async (value) => {
           this.plugin.settings.includeCompleted = value
+          await this.plugin.saveSettings()
+        }),
+      )
+
+    new Setting(containerEl)
+      .setName('Bidirectional Sync')
+      .setDesc(
+        'When enabled, checking a task checkbox in Obsidian will close it in Todoist on the next sync. Todoist is always the source of truth for content.',
+      )
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.bidirectionalSync).onChange(async (value) => {
+          this.plugin.settings.bidirectionalSync = value
           await this.plugin.saveSettings()
         }),
       )

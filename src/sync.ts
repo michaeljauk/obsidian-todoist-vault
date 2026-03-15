@@ -44,7 +44,7 @@ export async function runSync(app: App, settings: TodoistVaultSettings): Promise
       const existingFile = app.vault.getFileByPath(filePath)
 
       // Bidirectional sync: detect locally-checked tasks → close in Todoist
-      if (existingFile instanceof TFile) {
+      if (settings.bidirectionalSync && existingFile instanceof TFile) {
         const existingContent = await app.vault.read(existingFile)
         const localStates = parseTaskStates(existingContent)
 
