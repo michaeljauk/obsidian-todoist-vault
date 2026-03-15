@@ -19,6 +19,10 @@ export const DEFAULT_SETTINGS: TodoistVaultSettings = {
   bidirectionalSync: false,
 }
 
+function heading(containerEl: HTMLElement, text: string): void {
+  containerEl.createEl('h3', { text, cls: 'todoist-vault-settings-heading' })
+}
+
 export class TodoistVaultSettingTab extends PluginSettingTab {
   plugin: TodoistVaultPlugin
 
@@ -31,14 +35,24 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
     const { containerEl } = this
     containerEl.empty()
 
-    containerEl.createEl('h2', { text: 'Todoist Vault Sync' })
+    // ── Connection ────────────────────────────────────────────────────────────
+    heading(containerEl, 'Connection')
 
     new Setting(containerEl)
-      .setName('API Token')
-      .setDesc('Your Todoist API token (found in Todoist → Settings → Integrations)')
+      .setName('API token')
+      .setDesc(
+        createFragment((f) => {
+          f.appendText('Your Todoist API token. Find it in ')
+          f.createEl('a', {
+            text: 'Todoist → Settings → Integrations',
+            href: 'https://app.todoist.com/app/settings/integrations/developer',
+          })
+          f.appendText('.')
+        }),
+      )
       .addText((text) =>
         text
-          .setPlaceholder('Enter API token')
+          .setPlaceholder('Paste token here')
           .setValue(this.plugin.settings.apiToken)
           .onChange(async (value) => {
             this.plugin.settings.apiToken = value.trim()
@@ -46,9 +60,12 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
           }),
       )
 
+    // ── Sync ──────────────────────────────────────────────────────────────────
+    heading(containerEl, 'Sync')
+
     new Setting(containerEl)
-      .setName('Sync Folder')
-      .setDesc('Vault folder where task files will be written (created if it does not exist)')
+      .setName('Sync folder')
+      .setDesc('Vault folder where task files are written. Created automatically if missing.')
       .addText((text) =>
         text
           .setPlaceholder('tasks')
@@ -60,8 +77,8 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
-      .setName('Sync Interval (minutes)')
-      .setDesc('How often to sync from Todoist (minimum 1 minute)')
+      .setName('Sync interval')
+      .setDesc('How often to pull from Todoist in the background (minutes, minimum 1).')
       .addText((text) =>
         text
           .setPlaceholder('15')
@@ -76,8 +93,8 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
-      .setName('Project Filter')
-      .setDesc('Comma-separated list of project names to sync (leave empty to sync all projects)')
+      .setName('Project filter')
+      .setDesc('Comma-separated list of project names to sync. Leave empty to sync all projects.')
       .addText((text) =>
         text
           .setPlaceholder('Work, Personal')
@@ -91,9 +108,12 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
           }),
       )
 
+    // ── Output ────────────────────────────────────────────────────────────────
+    heading(containerEl, 'Output')
+
     new Setting(containerEl)
-      .setName('Include Completed Tasks')
-      .setDesc('Show completed tasks as - [x] in output files')
+      .setName('Show completed tasks')
+      .setDesc('Render completed tasks as - [x] in the output files.')
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.includeCompleted).onChange(async (value) => {
           this.plugin.settings.includeCompleted = value
@@ -102,9 +122,9 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
-      .setName('Bidirectional Sync')
+      .setName('Bidirectional sync')
       .setDesc(
-        'When enabled, checking a task checkbox in Obsidian will close it in Todoist on the next sync. Todoist is always the source of truth for content.',
+        'When enabled, checking a checkbox in Obsidian closes the task in Todoist on the next sync. Todoist remains the source of truth for task content.',
       )
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.bidirectionalSync).onChange(async (value) => {
@@ -113,9 +133,12 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
         }),
       )
 
+    // ── Actions ───────────────────────────────────────────────────────────────
+    heading(containerEl, 'Actions')
+
     new Setting(containerEl)
       .setName('Sync now')
-      .setDesc('Manually trigger a full sync from Todoist')
+      .setDesc('Manually trigger a full sync from Todoist.')
       .addButton((btn) =>
         btn
           .setButtonText('Sync now')
