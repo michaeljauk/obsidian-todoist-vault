@@ -1,6 +1,14 @@
 import { requestUrl } from 'obsidian'
 import { TodoistApi } from '@doist/todoist-api-typescript'
-import type { Project, Section, Task, CustomFetch } from '@doist/todoist-api-typescript'
+import type {
+  PersonalProject,
+  WorkspaceProject,
+  Section,
+  Task,
+  CustomFetch,
+} from '@doist/todoist-api-typescript'
+
+export type AnyProject = PersonalProject | WorkspaceProject
 
 // Obsidian-compatible fetch adapter (mirrors the SDK's own obsidian-fetch-adapter)
 const obsidianFetch: CustomFetch = async (url, options) => {
@@ -28,8 +36,8 @@ export class TodoistClient {
     this.api = new TodoistApi(apiToken, { customFetch: obsidianFetch })
   }
 
-  async getProjects(): Promise<Project[]> {
-    const results: Project[] = []
+  async getProjects(): Promise<AnyProject[]> {
+    const results: AnyProject[] = []
     let cursor: string | undefined
 
     do {

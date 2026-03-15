@@ -1,5 +1,4 @@
 import { App, TFile, normalizePath } from 'obsidian'
-import type { Project } from '@doist/todoist-api-typescript'
 import { TodoistClient } from './api'
 import { renderProject } from './renderer'
 import { parseTaskStates } from './parser'
@@ -20,7 +19,7 @@ export async function runSync(app: App, settings: TodoistVaultSettings): Promise
     await app.vault.createFolder(folderPath)
   }
 
-  let projects: Project[]
+  let projects
   try {
     projects = await client.getProjects()
   } catch (err) {
@@ -50,12 +49,13 @@ export async function runSync(app: App, settings: TodoistVaultSettings): Promise
         const localStates = parseTaskStates(existingContent)
 
         for (const task of tasks) {
-          if (task.isCompleted) continue // already done in Todoist
+          if (task.completedAt !== null) continue // already done in Todoist
           const localChecked = localStates.get(task.id)
           if (localChecked === true) {
             try {
               await client.closeTask(task.id)
-              task.isCompleted = true // reflect in render
+              // Reflect completion locally so renderer shows it as done
+              ;(task as { completedAt: string | null }).completedAt = new Date().toISOString()
             } catch (err) {
               console.error(`[TodoistVault] Failed to close task ${task.id}:`, err)
             }

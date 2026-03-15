@@ -1,4 +1,5 @@
-import type { Project, Section, Task } from '@doist/todoist-api-typescript'
+import type { Section, Task } from '@doist/todoist-api-typescript'
+import type { AnyProject } from './api'
 
 function formatTaskMeta(task: Task): string {
   const parts: string[] = [`id:${task.id}`]
@@ -14,11 +15,11 @@ function renderTask(task: Task, isCompleted: boolean): string {
 }
 
 export function renderProject(
-  project: Project,
+  project: AnyProject,
   sections: Section[],
   tasks: Task[],
   includeCompleted: boolean,
-  syncedAt: string
+  syncedAt: string,
 ): string {
   const lines: string[] = []
 
@@ -33,8 +34,8 @@ export function renderProject(
   lines.push(`# ${project.name}`)
   lines.push('')
 
-  const activeTasks = tasks.filter((t) => !t.isCompleted)
-  const completedTasks = tasks.filter((t) => t.isCompleted)
+  const isCompleted = (t: Task) => t.completedAt !== null
+  const activeTasks = tasks.filter((t) => !isCompleted(t))
   const displayTasks = includeCompleted ? tasks : activeTasks
 
   // Build section map
@@ -57,7 +58,7 @@ export function renderProject(
     lines.push(`## ${section.name}`)
     lines.push('')
     for (const task of sectionTasks) {
-      lines.push(renderTask(task, task.isCompleted))
+      lines.push(renderTask(task, isCompleted(task)))
     }
     lines.push('')
   }
@@ -68,12 +69,11 @@ export function renderProject(
     lines.push('## Inbox')
     lines.push('')
     for (const task of unsectioned) {
-      lines.push(renderTask(task, task.isCompleted))
+      lines.push(renderTask(task, isCompleted(task)))
     }
     lines.push('')
   }
 
-  // If no tasks at all, show empty state
   if (displayTasks.length === 0) {
     lines.push('_No tasks_')
     lines.push('')

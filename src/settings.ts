@@ -41,7 +41,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.apiToken = value.trim()
             await this.plugin.saveSettings()
-          })
+          }),
       )
 
     new Setting(containerEl)
@@ -54,7 +54,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.syncFolder = value.trim() || 'tasks'
             await this.plugin.saveSettings()
-          })
+          }),
       )
 
     new Setting(containerEl)
@@ -70,14 +70,12 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
               this.plugin.settings.syncIntervalMinutes = num
               await this.plugin.saveSettings()
             }
-          })
+          }),
       )
 
     new Setting(containerEl)
       .setName('Project Filter')
-      .setDesc(
-        'Comma-separated list of project names to sync (leave empty to sync all projects)'
-      )
+      .setDesc('Comma-separated list of project names to sync (leave empty to sync all projects)')
       .addText((text) =>
         text
           .setPlaceholder('Work, Personal')
@@ -88,19 +86,17 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
               .map((s) => s.trim())
               .filter(Boolean)
             await this.plugin.saveSettings()
-          })
+          }),
       )
 
     new Setting(containerEl)
       .setName('Include Completed Tasks')
       .setDesc('Show completed tasks as - [x] in output files')
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.includeCompleted)
-          .onChange(async (value) => {
-            this.plugin.settings.includeCompleted = value
-            await this.plugin.saveSettings()
-          })
+        toggle.setValue(this.plugin.settings.includeCompleted).onChange(async (value) => {
+          this.plugin.settings.includeCompleted = value
+          await this.plugin.saveSettings()
+        }),
       )
   }
 }
