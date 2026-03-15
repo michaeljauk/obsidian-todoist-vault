@@ -11,7 +11,8 @@
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
-    "version": "node version-bump.mjs && git add manifest.json versions.json"
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "Michael Jauk",
@@ -20,6 +21,8 @@
     "@doist/todoist-api-typescript": "7.1.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.4.4",
+    "@commitlint/config-conventional": "^20.4.4",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
@@ -27,6 +30,7 @@
     "esbuild": "^0.25.0",
     "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "obsidian": "latest",
     "prettier": "^3.8.1",
     "typescript": "^5.0.0"
