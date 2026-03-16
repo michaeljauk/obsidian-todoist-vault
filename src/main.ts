@@ -6,6 +6,7 @@ import { runSync } from './sync'
 export default class TodoistVaultPlugin extends Plugin {
   settings!: TodoistVaultSettings
   private syncIntervalId: number | null = null
+  private isSyncing = false
 
   async onload() {
     await this.loadSettings()
@@ -48,7 +49,13 @@ export default class TodoistVaultPlugin extends Plugin {
   }
 
   async runSync() {
-    await runSync(this.app, this.settings)
+    if (this.isSyncing) return
+    this.isSyncing = true
+    try {
+      await runSync(this.app, this.settings)
+    } finally {
+      this.isSyncing = false
+    }
   }
 
   private registerSyncInterval() {

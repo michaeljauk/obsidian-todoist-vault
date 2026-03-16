@@ -75,7 +75,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
             text: 'Todoist → Settings → Integrations',
             href: 'https://app.todoist.com/app/settings/integrations/developer',
           })
-          f.appendText('.')
+          f.appendText('. Stored unencrypted in your vault\'s plugin data — protect your vault accordingly.')
         }),
       )
       .addText((text) =>

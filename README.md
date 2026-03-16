@@ -72,6 +72,8 @@ tags:
 2. Open plugin settings → paste token → configure sync folder and interval
 3. Run **Todoist Vault Sync: Sync now** (command palette) to do an immediate sync
 
+> **Security:** Your API token is stored unencrypted in your vault's plugin data directory (`.obsidian/plugins/obsidian-todoist-vault/data.json`). Protect your vault accordingly.
+
 ## Settings
 
 ### Connection
@@ -116,6 +118,8 @@ tags:
 Enable **Bidirectional sync** in settings. On the next sync cycle, any task you have checked in Obsidian will be closed in Todoist, and any task you have unchecked (when "Show completed tasks" is on) will be reopened.
 
 > **Note:** Only the checkbox state is synced back. Task content, due dates, etc. are not written to Todoist. Todoist is the source of truth for task content.
+>
+> **Note:** Reopening a task (unchecking a completed one) only works when **Show completed tasks** is enabled — otherwise completed tasks aren't written to the file and can't be detected.
 
 ## Development
 
