@@ -134,73 +134,6 @@ function renderTaskList(
   return lines
 }
 
-function escapeTableCell(value: string): string {
-  return value.replace(/\|/g, '\\|').replace(/\n/g, ' ')
-}
-
-function renderTaskTableRows(
-  tasks: Task[],
-  childrenMap: Map<string, Task[]>,
-  isCompleted: (t: Task) => boolean,
-  showDescription: boolean,
-  deepLinks: boolean,
-  depth: number,
-  rows: string[],
-): void {
-  for (const task of tasks) {
-    const status = isCompleted(task) ? '✅' : '⬜'
-    const indent = depth > 0 ? `${'  '.repeat(depth - 1)}↳ ` : ''
-    const hasChildren = (childrenMap.get(task.id)?.length ?? 0) > 0
-    const rawContent = formatTaskContent(task, hasChildren, deepLinks)
-    const taskCell = escapeTableCell(`${indent}${rawContent}`)
-    const dueCell = task.due?.date ? formatDueDate(task.due.date) : ''
-    const priCell =
-      task.priority === 4 ? '🔴 p1'
-      : task.priority === 3 ? '🟠 p2'
-      : task.priority === 2 ? '🟡 p3'
-      : ''
-    const labelsCell = escapeTableCell(task.labels.join(', '))
-    const descCell = showDescription
-      ? escapeTableCell((task.description.trim().split('\n\n')[0] ?? '').trim())
-      : null
-
-    if (descCell !== null) {
-      rows.push(`| ${status} | ${taskCell} | ${dueCell} | ${priCell} | ${labelsCell} | ${descCell} |`)
-    } else {
-      rows.push(`| ${status} | ${taskCell} | ${dueCell} | ${priCell} | ${labelsCell} |`)
-    }
-
-    const children = childrenMap.get(task.id) ?? []
-    if (children.length > 0) {
-      renderTaskTableRows(children, childrenMap, isCompleted, showDescription, deepLinks, depth + 1, rows)
-    }
-  }
-}
-
-function renderTaskTable(
-  rootTasks: Task[],
-  allTasks: Task[],
-  isCompleted: (t: Task) => boolean,
-  showDescription: boolean,
-  deepLinks: boolean,
-): string[] {
-  const childrenMap = buildChildrenMap(allTasks)
-
-  const lines: string[] = []
-  if (showDescription) {
-    lines.push('| | Task | 📅 Due | Pri | 🏷 Labels | Description |')
-    lines.push('|---|---|---|---|---|---|')
-  } else {
-    lines.push('| | Task | 📅 Due | Pri | 🏷 Labels |')
-    lines.push('|---|---|---|---|---|')
-  }
-
-  const rows: string[] = []
-  renderTaskTableRows(rootTasks, childrenMap, isCompleted, showDescription, deepLinks, 0, rows)
-  lines.push(...rows)
-  return lines
-}
-
 export function renderProject(
   project: AnyProject,
   sections: Section[],
@@ -210,7 +143,6 @@ export function renderProject(
   taskDeepLinks: boolean,
   showVisibleMeta: boolean,
   showDescription: boolean,
-  taskLayout: 'list' | 'table',
 ): string {
   const lines: string[] = []
 
@@ -247,30 +179,18 @@ export function renderProject(
     const rootTasks = sectionMap.get(section.id) ?? []
     if (rootTasks.length === 0) continue
 
-    if (taskLayout === 'table') {
-      lines.push(`## ${section.name}`)
-      lines.push('')
-      lines.push(...renderTaskTable(rootTasks, displayTasks, isCompleted, showDescription, taskDeepLinks))
-    } else {
-      lines.push(`## ${section.name}`)
-      lines.push('')
-      lines.push(...renderTaskList(rootTasks, displayTasks, isCompleted, taskDeepLinks, showVisibleMeta, showDescription))
-    }
+    lines.push(`## ${section.name}`)
+    lines.push('')
+    lines.push(...renderTaskList(rootTasks, displayTasks, isCompleted, taskDeepLinks, showVisibleMeta, showDescription))
     lines.push('')
   }
 
   // Render unsectioned tasks under ## Inbox
   const unsectioned = sectionMap.get(null) ?? []
   if (unsectioned.length > 0) {
-    if (taskLayout === 'table') {
-      lines.push('## Inbox')
-      lines.push('')
-      lines.push(...renderTaskTable(unsectioned, displayTasks, isCompleted, showDescription, taskDeepLinks))
-    } else {
-      lines.push('## Inbox')
-      lines.push('')
-      lines.push(...renderTaskList(unsectioned, displayTasks, isCompleted, taskDeepLinks, showVisibleMeta, showDescription))
-    }
+    lines.push('## Inbox')
+    lines.push('')
+    lines.push(...renderTaskList(unsectioned, displayTasks, isCompleted, taskDeepLinks, showVisibleMeta, showDescription))
     lines.push('')
   }
 

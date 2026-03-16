@@ -15,7 +15,6 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 - Sections become `##` headings; unsectioned tasks go under `## Inbox`
 - Subtasks are rendered as indented nested list items
 - Inline `<!-- id: due: p1 -->` metadata — invisible in reading view, parseable for sync
-- **Two layouts:** checkbox list (default) or Markdown table
 - **Metadata badges:** due date, priority, recurrence, and labels shown inline below each task
 - **Task descriptions** rendered as collapsible callout blocks (list) or table column
 - **Task deep links:** wrap task titles in links that open the task directly in Todoist
@@ -97,8 +96,7 @@ tags:
 |---------|---------|-------------|
 | Show completed tasks | off | Render completed tasks as `- [x]` |
 | Show metadata badges | on | Show due date, priority, recurrence, and labels below each task |
-| Task layout | List | `List`: interactive checkboxes with badges; `Table`: Markdown table (richer but read-only) |
-| Show task descriptions | on | Render task descriptions as collapsible callouts (list) or table column |
+| Show task descriptions | on | Render task descriptions as collapsible callouts |
 | Task deep links | off | Wrap task titles in links that open the task in Todoist |
 | Bidirectional sync | off | Checking a checkbox in Obsidian closes the task in Todoist on next sync |
 
@@ -117,9 +115,7 @@ tags:
 
 Enable **Bidirectional sync** in settings. On the next sync cycle, any task you have checked in Obsidian will be closed in Todoist, and any task you have unchecked (when "Show completed tasks" is on) will be reopened.
 
-> **Notes:**
-> - Only the checkbox state is synced back. Task content, due dates, etc. are not written to Todoist. Todoist is the source of truth for task content.
-> - Bidirectional sync works with the **List layout only**. The Table layout renders status as an emoji, not a real checkbox.
+> **Note:** Only the checkbox state is synced back. Task content, due dates, etc. are not written to Todoist. Todoist is the source of truth for task content.
 
 ## Development
 

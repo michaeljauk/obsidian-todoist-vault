@@ -60,7 +60,7 @@ export async function runSync(app: App, settings: TodoistVaultSettings): Promise
 
       // Bidirectional sync: detect locally-checked/unchecked tasks → close/reopen in Todoist
       // Skip when table layout is active — no checkbox lines to parse
-      if (settings.bidirectionalSync && settings.taskLayout === 'list' && existingFile instanceof TFile) {
+      if (settings.bidirectionalSync && existingFile instanceof TFile) {
         const existingContent = await app.vault.read(existingFile)
         const localStates = parseTaskStates(existingContent)
 
@@ -100,7 +100,6 @@ export async function runSync(app: App, settings: TodoistVaultSettings): Promise
         settings.taskDeepLinks,
         settings.showVisibleMeta,
         settings.showDescription,
-        settings.taskLayout,
       )
 
       if (existingFile instanceof TFile) {

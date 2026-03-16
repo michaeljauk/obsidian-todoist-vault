@@ -2,22 +2,22 @@
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) 1.3+ (the only supported package manager)
+- [pnpm](https://pnpm.io) (the only supported package manager)
 - An Obsidian vault for manual testing
 
 ```bash
 git clone https://github.com/michaeljauk/obsidian-todoist-vault
 cd obsidian-todoist-vault
-bun install
+pnpm install
 ```
 
 ## Development Loop
 
 ```bash
-bun run dev        # watch mode — rebuilds main.js on every save
-bun run typecheck  # type-check without emitting
-bun run lint       # eslint
-bun run format     # prettier --write
+pnpm dev        # watch mode — rebuilds main.js on every save
+pnpm typecheck  # type-check without emitting
+pnpm lint       # eslint
+pnpm format     # prettier --write
 ```
 
 To load the plugin in Obsidian, symlink (or copy) `main.js` + `manifest.json` into your vault:

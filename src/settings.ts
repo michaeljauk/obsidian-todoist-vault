@@ -19,7 +19,6 @@ export interface TodoistVaultSettings {
   bidirectionalSync: boolean
   taskDeepLinks: boolean
   showVisibleMeta: boolean
-  taskLayout: 'list' | 'table'
   showDescription: boolean
   filePrefix: string
   fileSuffix: string
@@ -35,7 +34,6 @@ export const DEFAULT_SETTINGS: TodoistVaultSettings = {
   bidirectionalSync: false,
   taskDeepLinks: false,
   showVisibleMeta: true,
-  taskLayout: 'list',
   showDescription: true,
   filePrefix: '',
   fileSuffix: '',
@@ -188,26 +186,8 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
-      .setName('Task layout')
-      .setDesc(
-        'List: checkbox list with inline badges (bidirectional sync works). Table: Markdown table, visually richer but checkboxes are not interactive.',
-      )
-      .addDropdown((drop) =>
-        drop
-          .addOption('list', 'List (with badges)')
-          .addOption('table', 'Table')
-          .setValue(this.plugin.settings.taskLayout)
-          .onChange(async (value) => {
-            this.plugin.settings.taskLayout = value as 'list' | 'table'
-            await this.plugin.saveSettings()
-          }),
-      )
-
-    new Setting(containerEl)
       .setName('Show task descriptions')
-      .setDesc(
-        'Show task description below each task (list: italic line; table: Description column).',
-      )
+      .setDesc('Show task description below each task as a collapsible callout.')
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.showDescription).onChange(async (value) => {
           this.plugin.settings.showDescription = value
