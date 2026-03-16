@@ -31,12 +31,10 @@ function formatTaskMeta(task: Task): string {
 
 function renderFrontmatter(
   project: AnyProject,
-  syncedAt: string,
   fm: FrontmatterSettings,
 ): string {
   const lines: string[] = ['---']
   lines.push(`todoist_project_id: "${project.id}"`)
-  lines.push(`todoist_synced_at: "${syncedAt}"`)
   if (fm.includeUrl) lines.push(`todoist_url: "${project.url}"`)
   if (fm.includeColor) lines.push(`todoist_color: "${project.color}"`)
   if (fm.includeTags) lines.push(`tags:\n  - todoist`)
@@ -208,7 +206,6 @@ export function renderProject(
   sections: Section[],
   tasks: Task[],
   includeCompleted: boolean,
-  syncedAt: string,
   fm: FrontmatterSettings,
   taskDeepLinks: boolean,
   showVisibleMeta: boolean,
@@ -218,7 +215,7 @@ export function renderProject(
   const lines: string[] = []
 
   // Frontmatter
-  lines.push(renderFrontmatter(project, syncedAt, fm))
+  lines.push(renderFrontmatter(project, fm))
   lines.push('')
 
   // Title

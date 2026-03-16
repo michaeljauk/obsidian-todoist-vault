@@ -11,7 +11,6 @@ export async function runSync(app: App, settings: TodoistVaultSettings): Promise
   }
 
   const client = new TodoistClient(settings.apiToken)
-  const syncedAt = new Date().toISOString()
 
   // Ensure sync folder exists
   const folderPath = normalizePath(settings.syncFolder)
@@ -97,7 +96,6 @@ export async function runSync(app: App, settings: TodoistVaultSettings): Promise
         sections,
         tasks,
         settings.includeCompleted,
-        syncedAt,
         settings.frontmatter,
         settings.taskDeepLinks,
         settings.showVisibleMeta,
