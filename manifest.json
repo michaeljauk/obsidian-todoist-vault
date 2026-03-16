@@ -6,6 +6,5 @@
   "description": "Syncs Todoist projects and tasks to markdown files in your vault",
   "author": "Michael Jauk",
   "authorUrl": "https://github.com/michaeljauk",
-  "fundingUrl": "",
   "isDesktopOnly": true
 }

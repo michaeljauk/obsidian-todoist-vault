@@ -19,7 +19,7 @@
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "prepare": "husky"
   },
-  "keywords": [],
+  "keywords": ["obsidian", "obsidian-plugin", "todoist", "task-sync", "productivity", "markdown"],
   "author": "Michael Jauk",
   "license": "MIT",
   "dependencies": {
