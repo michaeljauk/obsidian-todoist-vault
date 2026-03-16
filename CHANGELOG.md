@@ -2,6 +2,17 @@
 
 All notable changes to Todoist Vault Sync are documented here.
 
+## [1.0.1] — 2026-03-16
+
+### Fixed
+
+- Removed unnecessary type assertion in Obsidian fetch adapter (`api.ts`)
+- Replaced `console.log` with `console.debug` for plugin lifecycle messages
+- Fixed async Promise-in-void warning in polling interval callback
+- Removed `[TodoistVault]` prefix from user-facing `Notice` messages
+- Fixed 20 sentence-case violations in UI strings (settings labels, descriptions, placeholders)
+- Added `eslint-plugin-obsidianmd` to enforce Obsidian plugin lint rules locally
+
 ## [1.0.0] — 2026-03-16
 
 Initial release.
