@@ -2,22 +2,22 @@
 
 ## Prerequisites
 
-- [pnpm](https://pnpm.io) (the only supported package manager)
+- [Bun](https://bun.sh) 1.3+ (the only supported package manager)
 - An Obsidian vault for manual testing
 
 ```bash
 git clone https://github.com/michaeljauk/obsidian-todoist-vault
 cd obsidian-todoist-vault
-pnpm install
+bun install
 ```
 
 ## Development Loop
 
 ```bash
-pnpm dev        # watch mode — rebuilds main.js on every save
-pnpm typecheck  # type-check without emitting
-pnpm lint       # eslint
-pnpm format     # prettier --write
+bun run dev        # watch mode — rebuilds main.js on every save
+bun run typecheck  # type-check without emitting
+bun run lint       # eslint
+bun run format     # prettier --write
 ```
 
 To load the plugin in Obsidian, symlink (or copy) `main.js` + `manifest.json` into your vault:
@@ -30,15 +30,17 @@ After each rebuild, go to **Settings → Community plugins → Reload plugins** 
 
 ## Commit Convention
 
-Commits are enforced by `commitlint`. Format: `type: description`.
+Commits are enforced by `commitlint`. Format: `type(scope): description`.
 
 Valid types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `test`.
 
+Scopes map to source modules: `api`, `settings`, `sync`, `renderer`, `parser`, `main`, `build`, `deps`, `docs`.
+
 Examples:
 ```
-feat: add priority filter setting
-fix: prevent duplicate files on prefix change
-docs: update file format spec in AGENTS.md
+feat(settings): add priority filter
+fix(sync): prevent duplicate files on prefix change
+docs(readme): fix bidirectional sync description
 ```
 
 ---
@@ -76,10 +78,6 @@ Then use `this.plugin.settings.myNewSetting` in `sync.ts` or `renderer.ts` as ne
 All markdown generation lives in `src/renderer.ts`. It is a **pure module** — no Obsidian API imports, no side effects. Keep it that way.
 
 The main export is `renderProject(project, sections, tasks, ...settings)`. If your feature depends on a new setting, add it to the function signature and thread it through the call site in `src/sync.ts`.
-
-If the feature affects the **list layout**, update `renderTaskList` / `renderTaskTree`.
-If it affects the **table layout**, update `renderTaskTable` / `renderTaskTableRows`.
-If it affects both, update both.
 
 ---
 

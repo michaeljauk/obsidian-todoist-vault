@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    labels:
+      - dependencies
+    groups:
+      obsidian:
+        patterns:
+          - obsidian
+      todoist:
+        patterns:
+          - "@doist/*"
+      tooling:
+        patterns:
+          - "@commitlint/*"
+          - "@typescript-eslint/*"
+          - "eslint*"
+          - "prettier*"
+          - "typescript"
+          - "esbuild"
+          - "builtin-modules"
