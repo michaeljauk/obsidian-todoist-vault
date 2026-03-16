@@ -198,6 +198,20 @@ bun run format       # prettier --write
 
 There are currently **no automated tests**. Manual vault testing is the verification method.
 
+### Releasing
+
+1. Update `CHANGELOG.md` with the new version's changes
+2. Run `bun version <new-version>` — this bumps `package.json`, runs `version-bump.mjs` (syncs `manifest.json` + `versions.json`), and stages both files
+3. Commit: `chore(release): bump version to <new-version>`
+4. Push and tag — **tag must be bare semver, no `v` prefix** (Obsidian rejects `v1.0.0`):
+   ```bash
+   git push origin main
+   git tag 1.0.0
+   git push origin 1.0.0
+   ```
+5. The release workflow (`.github/workflows/release.yml`) triggers automatically, builds `main.js`, and creates a GitHub Release with `main.js` + `manifest.json` as assets
+6. Verify at `github.com/michaeljauk/obsidian-todoist-vault/releases` that both assets are attached before submitting to the store
+
 ### Commit Convention
 
 Commits are linted by `commitlint`. Format: `type(scope): description`.
