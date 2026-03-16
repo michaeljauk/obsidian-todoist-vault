@@ -208,7 +208,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Bidirectional sync')
       .setDesc(
-        'When enabled, checking a checkbox in Obsidian closes the task in Todoist on the next sync. Todoist remains the source of truth for task content.',
+        'When enabled, checking a checkbox in Obsidian closes the task in Todoist on the next sync. Unchecking a completed task reopens it — but only if "Show completed tasks" is also enabled. Todoist remains the source of truth for task content.',
       )
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.bidirectionalSync).onChange(async (value) => {
