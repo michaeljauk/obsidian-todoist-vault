@@ -22,8 +22,10 @@ updates:
         patterns:
           - "@commitlint/*"
           - "@typescript-eslint/*"
+          - "@types/*"
           - "eslint*"
           - "prettier*"
           - "typescript"
           - "esbuild"
           - "builtin-modules"
+          - "husky"
