@@ -21,6 +21,8 @@ export interface TodoistVaultSettings {
   showVisibleMeta: boolean
   taskLayout: 'list' | 'table'
   showDescription: boolean
+  filePrefix: string
+  fileSuffix: string
   frontmatter: FrontmatterSettings
 }
 
@@ -35,6 +37,8 @@ export const DEFAULT_SETTINGS: TodoistVaultSettings = {
   showVisibleMeta: true,
   taskLayout: 'list',
   showDescription: true,
+  filePrefix: '',
+  fileSuffix: '',
   frontmatter: {
     includeUrl: true,
     includeColor: true,
@@ -98,6 +102,32 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.syncFolder)
           .onChange(async (value) => {
             this.plugin.settings.syncFolder = value.trim() || 'tasks'
+            await this.plugin.saveSettings()
+          }),
+      )
+
+    new Setting(containerEl)
+      .setName('Filename prefix')
+      .setDesc('Prepended to every synced project filename. E.g. "📋 " → "📋 NetCero.md". Useful to avoid name collisions with project hub notes.')
+      .addText((text) =>
+        text
+          .setPlaceholder('📋 ')
+          .setValue(this.plugin.settings.filePrefix)
+          .onChange(async (value) => {
+            this.plugin.settings.filePrefix = value
+            await this.plugin.saveSettings()
+          }),
+      )
+
+    new Setting(containerEl)
+      .setName('Filename suffix')
+      .setDesc('Appended to every synced project filename (before .md). E.g. " tasks" → "NetCero tasks.md".')
+      .addText((text) =>
+        text
+          .setPlaceholder(' tasks')
+          .setValue(this.plugin.settings.fileSuffix)
+          .onChange(async (value) => {
+            this.plugin.settings.fileSuffix = value
             await this.plugin.saveSettings()
           }),
       )
