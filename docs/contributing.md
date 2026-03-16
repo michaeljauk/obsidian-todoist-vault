@@ -94,3 +94,9 @@ The main export is `renderProject(project, sections, tasks, ...settings)`. If yo
 | `main.js` | Build artifact — never edit by hand |
 
 See [`AGENTS.md`](../AGENTS.md) for the full architecture reference.
+
+---
+
+## Releasing
+
+Releases are cut by the maintainer. The full process is documented in [`AGENTS.md → Releasing`](../AGENTS.md). In short: update `CHANGELOG.md`, bump the version, push a bare semver tag (`1.0.0` — no `v` prefix), and the release workflow handles the rest.
