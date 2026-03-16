@@ -1,30 +1,108 @@
 # Todoist Vault Sync
 
-An Obsidian community plugin that syncs Todoist projects and tasks to **real markdown files** in your vault.
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/michaeljauk)
+
+An Obsidian community plugin that syncs your Todoist projects and tasks to **real markdown files** in your vault.
+
+![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-purple) ![Version](https://img.shields.io/badge/version-1.0.1-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Min Obsidian](https://img.shields.io/badge/Obsidian-1.4.0%2B-blueviolet)
 
 Unlike query-based plugins, this writes actual `.md` files so they:
+
 - Work offline once synced
 - Appear in search results and backlinks
 - Are queryable with [Dataview](https://blacksmithgu.github.io/obsidian-dataview/)
 - Are indexed by [Smart Connections](https://smartconnections.app/) alongside your notes
 - Sync seamlessly across any vault sync solution (iCloud, Obsidian Sync, Syncthing, Dropbox, git — your choice)
 
-## Features
+---
 
-- One markdown file per Todoist project
-- Sections become `##` headings; unsectioned tasks go under `## Inbox`
-- Subtasks are rendered as indented nested list items
-- Inline `<!-- id: due: p1 -->` metadata — invisible in reading view, parseable for sync
-- **Metadata badges:** due date, priority, recurrence, and labels shown inline below each task
-- **Task descriptions** rendered as collapsible callout blocks (list) or table column
-- **Task deep links:** wrap task titles in links that open the task directly in Todoist
-- **Bidirectional sync** (opt-in): check a task in Obsidian → it closes in Todoist on next sync
-- Configurable sync interval (default 15 min) + manual "Sync now" command
-- Whitelist specific projects or sync everything
-- Configurable filename prefix/suffix to avoid collisions with other notes
-- Optional display of completed tasks as `- [x]`
+## 🚀 Features
 
-## File Format
+- **📁 One file per project** — each Todoist project becomes a dedicated `.md` file
+- **🗂️ Sections as headings** — sections become `##` headings; unsectioned tasks go under `## Inbox`
+- **🔀 Subtask nesting** — subtasks rendered as indented nested list items
+- **🏷️ Rich metadata badges** — due date, priority, recurrence, and labels shown inline below each task
+- **📝 Task descriptions** — rendered as collapsible callout blocks
+- **🔗 Task deep links** — wrap task titles in links that open directly in Todoist
+- **↔️ Bidirectional sync** — check a task in Obsidian → it closes in Todoist on next sync
+- **⏱️ Configurable sync interval** — default 15 min, plus a manual "Sync now" command
+- **🔍 Project filter** — whitelist specific projects or sync everything
+- **✏️ Filename prefix/suffix** — avoid collisions with other notes in your vault
+- **✅ Completed tasks** — optionally render completed tasks as `- [x]`
+- **📋 Rich frontmatter** — project URL, color, tags, favorites, shared status, and custom YAML fields
+
+---
+
+## 📦 Installation
+
+### From Community Plugins (recommended)
+
+1. Open Obsidian → **Settings → Community plugins → Browse**
+2. Search for **Todoist Vault Sync**
+3. Install and enable
+
+### Manual
+
+1. Download `main.js` and `manifest.json` from the [latest release](https://github.com/michaeljauk/obsidian-todoist-vault/releases)
+2. Copy both files into `<vault>/.obsidian/plugins/todoist-vault-sync/`
+3. Enable the plugin in **Settings → Community plugins**
+
+---
+
+## ⚙️ Setup
+
+1. Get your API token: Todoist → **Settings → Integrations → Developer → API token**
+2. Open plugin settings → paste token → configure sync folder and interval
+3. Run **Todoist Vault Sync: Sync now** from the command palette for an immediate sync
+
+> **Security:** Your API token is stored unencrypted in your vault's plugin data directory (`.obsidian/plugins/todoist-vault-sync/data.json`). Protect your vault accordingly.
+
+---
+
+## 🛠️ Settings
+
+### Connection
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| API Token | — | Your Todoist API token |
+
+### Sync
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Sync Folder | `tasks` | Vault folder for task files (created automatically) |
+| Filename Prefix | _(empty)_ | Prepended to every synced filename, e.g. `📋 ` → `📋 Work.md` |
+| Filename Suffix | _(empty)_ | Appended before `.md`, e.g. ` tasks` → `Work tasks.md` |
+| Sync Interval | `15` min | Background polling interval (minimum 1) |
+| Project Filter | _(all)_ | Comma-separated project names to include; empty = all |
+
+### Output
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Show completed tasks | off | Render completed tasks as `- [x]` |
+| Show metadata badges | on | Show due date, priority, recurrence, and labels below each task |
+| Show task descriptions | on | Render task descriptions as collapsible callouts |
+| Task deep links | off | Wrap task titles in links that open the task in Todoist |
+| Bidirectional sync | off | Checking a checkbox in Obsidian closes the task in Todoist on next sync |
+
+### Frontmatter
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Include project URL | on | Add `todoist_url` to frontmatter |
+| Include project color | on | Add `todoist_color` to frontmatter |
+| Include tags | on | Add `tags: [todoist]` to frontmatter |
+| Include is_favorite | off | Add `todoist_is_favorite` to frontmatter |
+| Include is_shared | off | Add `todoist_is_shared` to frontmatter |
+| Custom fields | _(empty)_ | Raw YAML lines appended to frontmatter, one per line |
+
+---
+
+## 📄 File Format
+
+Each synced project file looks like this:
 
 ```markdown
 ---
@@ -52,76 +130,30 @@ tags:
   - [ ] Subtask <!-- id:jkl012 -->
 ```
 
-## Installation
+### Priority Mapping
 
-### From Community Plugins (recommended)
+Todoist's API uses an inverted priority scale (4 = highest). The plugin converts to human-readable labels:
 
-1. Open Obsidian → **Settings → Community plugins → Browse**
-2. Search for **Todoist Vault Sync**
-3. Install and enable
+| Todoist `priority` | Label | Badge |
+|--------------------|-------|-------|
+| 4 | p1 (urgent) | `🔴 p1` |
+| 3 | p2 | `🟠 p2` |
+| 2 | p3 | `🟡 p3` |
+| 1 | p4 (default) | _(no badge)_ |
 
-### Manual
+---
 
-1. Download `main.js` and `manifest.json` from the [latest release](https://github.com/michaeljauk/obsidian-todoist-vault/releases)
-2. Copy both files into `<vault>/.obsidian/plugins/obsidian-todoist-vault/`
-3. Enable the plugin in **Settings → Community plugins**
+## ↔️ Bidirectional Sync
 
-## Setup
+Enable **Bidirectional sync** in settings. On the next sync cycle, any task you check in Obsidian will be closed in Todoist, and any task you uncheck (when "Show completed tasks" is on) will be reopened.
 
-1. Get your API token: Todoist → **Settings → Integrations → Developer → API token**
-2. Open plugin settings → paste token → configure sync folder and interval
-3. Run **Todoist Vault Sync: Sync now** (command palette) to do an immediate sync
-
-> **Security:** Your API token is stored unencrypted in your vault's plugin data directory (`.obsidian/plugins/obsidian-todoist-vault/data.json`). Protect your vault accordingly.
-
-## Settings
-
-### Connection
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| API Token | — | Todoist API token |
-
-### Sync
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Sync Folder | `tasks` | Vault folder for task files (created automatically) |
-| Filename prefix | _(empty)_ | Prepended to every synced filename, e.g. `📋 ` → `📋 Work.md` |
-| Filename suffix | _(empty)_ | Appended before `.md`, e.g. ` tasks` → `Work tasks.md` |
-| Sync Interval | `15` min | Background polling interval (minimum 1) |
-| Project Filter | _(all)_ | Comma-separated project names to include; empty = all |
-
-### Output
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Show completed tasks | off | Render completed tasks as `- [x]` |
-| Show metadata badges | on | Show due date, priority, recurrence, and labels below each task |
-| Show task descriptions | on | Render task descriptions as collapsible callouts |
-| Task deep links | off | Wrap task titles in links that open the task in Todoist |
-| Bidirectional sync | off | Checking a checkbox in Obsidian closes the task in Todoist on next sync |
-
-### Frontmatter
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Include project URL | on | Add `todoist_url` to frontmatter |
-| Include project color | on | Add `todoist_color` to frontmatter |
-| Include tags | on | Add `tags: [todoist]` to frontmatter |
-| Include is_favorite | off | Add `todoist_is_favorite` to frontmatter |
-| Include is_shared | off | Add `todoist_is_shared` to frontmatter |
-| Custom fields | _(empty)_ | Raw YAML lines appended to frontmatter, one per line |
-
-## Bidirectional Sync
-
-Enable **Bidirectional sync** in settings. On the next sync cycle, any task you have checked in Obsidian will be closed in Todoist, and any task you have unchecked (when "Show completed tasks" is on) will be reopened.
-
-> **Note:** Only the checkbox state is synced back. Task content, due dates, etc. are not written to Todoist. Todoist is the source of truth for task content.
+> **Note:** Only checkbox state is synced back to Todoist. Task content, due dates, and priorities are not written back — Todoist is the source of truth for task content.
 >
-> **Note:** Reopening a task (unchecking a completed one) only works when **Show completed tasks** is enabled — otherwise completed tasks aren't written to the file and can't be detected.
+> **Note:** Reopening a task by unchecking it only works when **Show completed tasks** is enabled — otherwise completed tasks aren't present in the file.
 
-## Development
+---
+
+## 👩‍💻 Development
 
 ```bash
 git clone https://github.com/michaeljauk/obsidian-todoist-vault
@@ -138,13 +170,27 @@ bun run format       # prettier
 To test in a vault, copy (or symlink) `main.js` and `manifest.json` into:
 
 ```
-<your-vault>/.obsidian/plugins/obsidian-todoist-vault/
+<your-vault>/.obsidian/plugins/todoist-vault-sync/
 ```
 
 Then reload plugins in Obsidian (**Settings → Community plugins → reload**).
 
 See [`docs/contributing.md`](docs/contributing.md) for how to add new settings or render features.
 
-## License
+---
 
-MIT
+## 🤝 Contributing
+
+Contributions are welcome! Open an issue or submit a pull request on [GitHub](https://github.com/michaeljauk/obsidian-todoist-vault).
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Made with ❤️ by [Michael Jauk](https://github.com/michaeljauk)**
+
+*Not officially affiliated with Todoist or Obsidian.*
