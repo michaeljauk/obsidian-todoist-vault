@@ -13,10 +13,16 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 
 - One markdown file per Todoist project
 - Sections become `##` headings; unsectioned tasks go under `## Inbox`
+- Subtasks are rendered as indented nested list items
 - Inline `<!-- id: due: p1 -->` metadata — invisible in reading view, parseable for sync
-- **Bidirectional sync**: check a task in Obsidian → it closes in Todoist on next sync
+- **Two layouts:** checkbox list (default) or Markdown table
+- **Metadata badges:** due date, priority, recurrence, and labels shown inline below each task
+- **Task descriptions** rendered as collapsible callout blocks (list) or table column
+- **Task deep links:** wrap task titles in links that open the task directly in Todoist
+- **Bidirectional sync** (opt-in): check a task in Obsidian → it closes in Todoist on next sync
 - Configurable sync interval (default 15 min) + manual "Sync now" command
 - Whitelist specific projects or sync everything
+- Configurable filename prefix/suffix to avoid collisions with other notes
 - Optional display of completed tasks as `- [x]`
 
 ## File Format
@@ -24,7 +30,10 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 ```markdown
 ---
 todoist_project_id: "123456"
-todoist_synced_at: "2026-03-15T10:00:00Z"
+todoist_url: "https://todoist.com/app/project/123456"
+todoist_color: "blue"
+tags:
+  - todoist
 ---
 
 # Project Name
@@ -32,11 +41,16 @@ todoist_synced_at: "2026-03-15T10:00:00Z"
 ## Section Name
 
 - [ ] Task content <!-- id:abc123 due:2026-03-15 p1 -->
-- [x] Completed task <!-- id:def456 -->
+  `📅 Mar 15` `🔴 p1`
+
+- [ ] Recurring task <!-- id:def456 recur:every day -->
+  `📅 Mar 16` `🔁 every day`
 
 ## Inbox
 
 - [ ] Unsectioned task <!-- id:ghi789 p2 -->
+  `🟠 p2`
+  - [ ] Subtask <!-- id:jkl012 -->
 ```
 
 ## Installation
@@ -61,19 +75,51 @@ todoist_synced_at: "2026-03-15T10:00:00Z"
 
 ## Settings
 
+### Connection
+
 | Setting | Default | Description |
 |---------|---------|-------------|
 | API Token | — | Todoist API token |
+
+### Sync
+
+| Setting | Default | Description |
+|---------|---------|-------------|
 | Sync Folder | `tasks` | Vault folder for task files (created automatically) |
-| Sync Interval | `15` min | Background polling interval |
-| Project Filter | (all) | Comma-separated project names to include; empty = all |
-| Include Completed | off | Show `- [x]` completed tasks in files |
+| Filename prefix | _(empty)_ | Prepended to every synced filename, e.g. `📋 ` → `📋 Work.md` |
+| Filename suffix | _(empty)_ | Appended before `.md`, e.g. ` tasks` → `Work tasks.md` |
+| Sync Interval | `15` min | Background polling interval (minimum 1) |
+| Project Filter | _(all)_ | Comma-separated project names to include; empty = all |
+
+### Output
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Show completed tasks | off | Render completed tasks as `- [x]` |
+| Show metadata badges | on | Show due date, priority, recurrence, and labels below each task |
+| Task layout | List | `List`: interactive checkboxes with badges; `Table`: Markdown table (richer but read-only) |
+| Show task descriptions | on | Render task descriptions as collapsible callouts (list) or table column |
+| Task deep links | off | Wrap task titles in links that open the task in Todoist |
+| Bidirectional sync | off | Checking a checkbox in Obsidian closes the task in Todoist on next sync |
+
+### Frontmatter
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Include project URL | on | Add `todoist_url` to frontmatter |
+| Include project color | on | Add `todoist_color` to frontmatter |
+| Include tags | on | Add `tags: [todoist]` to frontmatter |
+| Include is_favorite | off | Add `todoist_is_favorite` to frontmatter |
+| Include is_shared | off | Add `todoist_is_shared` to frontmatter |
+| Custom fields | _(empty)_ | Raw YAML lines appended to frontmatter, one per line |
 
 ## Bidirectional Sync
 
-After you check a task checkbox in Obsidian, the plugin closes it in Todoist on the next sync cycle. This is always on — no toggle needed.
+Enable **Bidirectional sync** in settings. On the next sync cycle, any task you have checked in Obsidian will be closed in Todoist, and any task you have unchecked (when "Show completed tasks" is on) will be reopened.
 
-> **Note:** Only checking (completing) tasks is synced back. Edits to task content, due dates, etc. are not written to Todoist. This plugin treats Todoist as the source of truth for content.
+> **Notes:**
+> - Only the checkbox state is synced back. Task content, due dates, etc. are not written to Todoist. Todoist is the source of truth for task content.
+> - Bidirectional sync works with the **List layout only**. The Table layout renders status as an emoji, not a real checkbox.
 
 ## Development
 
@@ -96,6 +142,8 @@ To test in a vault, copy (or symlink) `main.js` and `manifest.json` into:
 ```
 
 Then reload plugins in Obsidian (**Settings → Community plugins → reload**).
+
+See [`docs/contributing.md`](docs/contributing.md) for how to add new settings or render features.
 
 ## License
 

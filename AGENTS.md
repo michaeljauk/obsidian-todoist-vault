@@ -23,10 +23,10 @@ An **Obsidian community plugin** (not a web app, not a monorepo) that pulls Todo
 ```
 src/
 ├── main.ts       Plugin entry point — lifecycle, command registration, interval scheduling
-├── api.ts        Thin wrapper around @doist/todoist-api-typescript (getProjects, getSections, getTasks, closeTask, reopenTask)
+├── api.ts        Obsidian-compatible Todoist REST client (custom fetch adapter + pagination)
 ├── settings.ts   TodoistVaultSettings interface + DEFAULT_SETTINGS + PluginSettingTab UI
 ├── sync.ts       Orchestrator — fetches data, runs bidirectional sync, calls renderer, writes files
-├── renderer.ts   Pure functions: project → markdown string (list layout or table layout)
+├── renderer.ts   Pure functions: project data → markdown string (list layout or table layout)
 └── parser.ts     Parses existing file content to extract task checkbox states for bidirectional sync
 ```
 
@@ -35,7 +35,7 @@ src/
 ```
 Todoist REST API
       │
-   api.ts  (getProjects / getSections / getTasks)
+   api.ts  (getProjects / getSections / getTasks — all paginated)
       │
    sync.ts (filter projects → optional bidir check → render → vault write)
       │
@@ -56,17 +56,58 @@ Vault file (existing content)
 
 ---
 
-## File Format Spec
+## Module Details
 
-Every synced file looks like this:
+### `api.ts`
+
+Wraps `@doist/todoist-api-typescript` with an **Obsidian-compatible fetch adapter**.
+
+Obsidian's security sandbox blocks the browser's native `fetch` from reaching external URLs. The `obsidianFetch` adapter uses `requestUrl` (Obsidian's allowed HTTP method) to proxy all SDK requests. All methods use cursor-based pagination and collect all pages before returning.
+
+Methods: `getProjects()`, `getSections(projectId)`, `getTasks(projectId)`, `closeTask(taskId)`, `reopenTask(taskId)`.
+
+### `parser.ts`
+
+```ts
+parseTaskStates(content: string): Map<string, boolean>
+```
+
+Regex: `/^\s*- \[([ xX])\] .+<!-- id:(\S+)/gm`
+
+Matches any checkbox line (`- [ ]` or `- [x]`) that has a `<!-- id:... -->` comment. Returns a map of `taskId → isChecked`. Used exclusively by `sync.ts` during the bidirectional sync phase to compare local checkbox state against Todoist's task completion state.
+
+### `renderer.ts`
+
+Pure module — no side effects, no Obsidian API imports. Takes project data and returns a markdown string. Two layouts:
+
+- **List** (`taskLayout: 'list'`): checkbox list with optional badge lines and description callout blocks. Supports bidirectional sync because `- [ ]` / `- [x]` lines are parseable.
+- **Table** (`taskLayout: 'table'`): Markdown table with `⬜`/`✅` emoji status. Does **not** support bidirectional sync — the parser regex does not match table rows.
+
+### `sync.ts`
+
+Orchestrates one full sync cycle:
+1. Fetch all projects, apply `projectFilter`
+2. For each project, fetch sections and tasks in parallel (`Promise.all`)
+3. If `bidirectionalSync && taskLayout === 'list'`: read existing file, parse states, close/reopen changed tasks
+4. Render project to string via `renderProject()`
+5. Write file (create or modify)
+
+File identity uses `todoist_project_id` from frontmatter — if `filePrefix`/`fileSuffix` changed, scans the folder for a file with matching frontmatter and renames it rather than creating a duplicate.
+
+---
+
+## File Format Spec
 
 ```markdown
 ---
 todoist_project_id: "123456"
-todoist_url: "https://todoist.com/app/project/123456"
-todoist_color: "blue"
-tags:
+todoist_url: "https://todoist.com/app/project/123456"   ← optional (includeUrl)
+todoist_color: "blue"                                    ← optional (includeColor)
+tags:                                                    ← optional (includeTags)
   - todoist
+todoist_is_favorite: false                               ← optional (includeIsFavorite)
+todoist_is_shared: false                                 ← optional (includeIsShared)
+# custom YAML lines from frontmatter.customFields        ← optional
 ---
 
 # Project Name
@@ -74,9 +115,14 @@ tags:
 ## Section Name
 
 - [ ] Task content <!-- id:abc123 due:2026-03-15 p1 -->
-  `📅 Mar 15` `🔴 p1`
-  > [!desc]- Description
-  > Task description text
+  `📅 Mar 15` `🔴 p1`                                   ← visible meta (showVisibleMeta)
+  > [!desc]- Description                                 ← description callout (showDescription)
+  > Description text here
+
+- [ ] Recurring task <!-- id:def456 recur:every day -->
+  `📅 Mar 16` `🔁 every day`
+
+  - [ ] Subtask <!-- id:sub789 -->                       ← indented child task
 
 ## Inbox
 
@@ -84,42 +130,67 @@ tags:
 ```
 
 **Inline comment format:** `<!-- id:<taskId> [due:<YYYY-MM-DD>] [recur:<string>] [p1|p2|p3] -->`
-Parser (`parser.ts`) uses this to match checkboxes back to task IDs.
 
-**Priority mapping** (Todoist API is inverted):
-`task.priority 4 → p1 (highest)`, `3 → p2`, `2 → p3`, `1 → p4 (default/none)`
+The `recur` field is the raw `task.due.string` from Todoist (e.g. `"every day at 10am"`, `"every 2 weeks"`).
+
+**Priority mapping** (Todoist API is inverted — priority 4 is the highest):
+
+| API `priority` | Display label | Badge |
+|---|---|---|
+| 4 | p1 (urgent) | `🔴 p1` |
+| 3 | p2 | `🟠 p2` |
+| 2 | p3 | `🟡 p3` |
+| 1 | p4 (default) | _(no badge)_ |
+
+Formula: `p${5 - task.priority}` converts API value to display label.
+
+**Table layout** (when `taskLayout === 'table'`):
+
+```markdown
+## Section Name
+
+| | Task | 📅 Due | Pri | 🏷 Labels | Description |
+|---|---|---|---|---|---|
+| ⬜ | Task content | Mar 15 | 🔴 p1 | work | First paragraph only |
+| ✅ | Done task | | | | |
+```
+
+Note: description is truncated to the first paragraph (`split('\n\n')[0]`) in table format.
 
 ---
 
 ## Settings Interface
 
-Defined in `settings.ts`. Always extend `TodoistVaultSettings` and `DEFAULT_SETTINGS` together — the settings UI in `display()` must also be updated for any new field.
+Defined in `settings.ts`. **When adding a new setting, update all three places in one commit:** `TodoistVaultSettings` interface, `DEFAULT_SETTINGS` object, and `display()` UI method.
 
-| Field | Type | Default | Notes |
-|-------|------|---------|-------|
-| `apiToken` | string | `''` | Todoist REST API token |
-| `syncFolder` | string | `'tasks'` | Vault-relative path |
-| `syncIntervalMinutes` | number | `15` | Min 1 |
-| `projectFilter` | string[] | `[]` | Empty = all projects |
-| `includeCompleted` | boolean | `false` | Show `- [x]` tasks |
-| `bidirectionalSync` | boolean | `false` | Opt-in checkbox→Todoist sync |
-| `taskDeepLinks` | boolean | `false` | Wrap task in `todoist://` link |
-| `showVisibleMeta` | boolean | `true` | Badge line below tasks |
-| `taskLayout` | `'list'\|'table'` | `'list'` | List supports bidir sync; table does not |
-| `showDescription` | boolean | `true` | Callout block (list) or column (table) |
-| `filePrefix` | string | `''` | Prepended to filename |
-| `fileSuffix` | string | `''` | Appended before `.md` |
-| `frontmatter` | FrontmatterSettings | see code | Sub-object for FM toggles |
+| Field | Type | Default |
+|-------|------|---------|
+| `apiToken` | string | `''` |
+| `syncFolder` | string | `'tasks'` |
+| `syncIntervalMinutes` | number | `15` |
+| `projectFilter` | string[] | `[]` |
+| `includeCompleted` | boolean | `false` |
+| `bidirectionalSync` | boolean | `false` |
+| `taskDeepLinks` | boolean | `false` |
+| `showVisibleMeta` | boolean | `true` |
+| `taskLayout` | `'list'\|'table'` | `'list'` |
+| `showDescription` | boolean | `true` |
+| `filePrefix` | string | `''` |
+| `fileSuffix` | string | `''` |
+| `frontmatter` | FrontmatterSettings | see code |
+
+`FrontmatterSettings` sub-object: `includeUrl`, `includeColor`, `includeTags`, `includeIsFavorite`, `includeIsShared`, `customFields`.
 
 ---
 
 ## Key Invariants
 
-1. **Todoist is source of truth for content.** The plugin never writes task content back to Todoist — only task completion state (via `closeTask` / `reopenTask`).
-2. **Bidirectional sync is list-layout only.** Table layout has no checkboxes — `sync.ts` skips the bidir block when `taskLayout === 'table'`.
-3. **`todoist_project_id` in frontmatter is the stable file identity.** If `filePrefix`/`fileSuffix` change, `sync.ts` finds the old file by scanning frontmatter and renames it rather than creating a duplicate.
-4. **`renderer.ts` is pure.** No side effects, no Obsidian API calls — only takes data and returns a markdown string. Keep it that way.
-5. **`main.js` is the build artifact.** Never edit it by hand; it is always regenerated by `bun run build`.
+1. **Todoist is source of truth for content.** The plugin never writes task content, due dates, or priority back to Todoist — only task completion state (via `closeTask` / `reopenTask`).
+2. **Bidirectional sync is list-layout only.** Table layout renders status as `⬜`/`✅` emoji — not real checkboxes — so the parser regex does not match table rows.
+3. **`todoist_project_id` in frontmatter is the stable file identity.** If `filePrefix`/`fileSuffix` change, `sync.ts` scans for the old file by frontmatter and renames it rather than creating a duplicate.
+4. **`renderer.ts` is pure.** No side effects, no Obsidian API calls. Keep it that way — it makes the render logic easy to reason about and test.
+5. **`main.js` is a build artifact.** Never edit it by hand; always regenerated by `bun run build`.
+6. **Task IDs are permanent.** Todoist task IDs never change even if task content is edited. The inline `<!-- id:... -->` comment survives content updates between syncs.
 
 ---
 
@@ -148,7 +219,7 @@ There are currently **no automated tests**. Manual vault testing is the verifica
 ### Commit Convention
 
 Commits are linted by `commitlint` (config: `commitlint.config.mjs`).
-Format: `type(scope): description` — e.g. `feat: add label filter`, `fix: prevent duplicate files`.
+Format: `type: description` — e.g. `feat: add label filter`, `fix: prevent duplicate files`.
 Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `test`.
 
 ---
@@ -163,17 +234,18 @@ Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `test`.
 - `app.vault.create(path, content)` — create new file
 - `app.metadataCache.getFileCache(file)` — access frontmatter
 - `app.fileManager.renameFile(file, newPath)` — rename/move file
-- `this.registerInterval(...)` — NOT used; uses raw `window.setInterval` and tracks ID manually to clear on unload
+- `window.setInterval` / `window.clearInterval` — used directly (not `this.registerInterval`) so the plugin can track the ID and clear it manually in `onunload()`
 
 ---
 
 ## Common Pitfalls
 
-- **Do not import Node.js built-ins** (`fs`, `path`, etc.) — Obsidian plugins run in a sandboxed browser-like context. Use Obsidian Vault API instead.
+- **Do not import Node.js built-ins** (`fs`, `path`, etc.) — Obsidian plugins run in a sandboxed browser-like environment. Use the Obsidian Vault API instead.
+- **Do not use the browser's native `fetch`** for external requests — use `requestUrl` from Obsidian API (already handled in `api.ts` via the `obsidianFetch` adapter).
 - **Do not use `normalizePath` on absolute paths** — only vault-relative paths.
-- **Priority inversion:** Todoist API `priority: 4` = p1 (urgent). The formula `p${5 - task.priority}` converts API priority to display label.
-- **`fileSuffix`/`filePrefix` rename flow** — if you modify the filename construction in `sync.ts`, also update the fallback scan that looks up files by `todoist_project_id` frontmatter.
-- **`registerInterval` not used** — the plugin clears the interval manually in `onunload()`. If switching to `this.registerInterval`, remove the manual `syncIntervalId` tracking.
+- **Priority is inverted in the Todoist API:** `priority: 4` = p1 (urgent). Use `p${5 - task.priority}` to get the display label.
+- **`fileSuffix`/`filePrefix` rename flow** — if you change filename construction in `sync.ts`, also update the frontmatter scan fallback that finds files by `todoist_project_id`.
+- **Adding a setting requires touching three places** — interface, defaults, and UI. See [`docs/contributing.md`](docs/contributing.md).
 
 ---
 
@@ -182,3 +254,4 @@ Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `test`.
 | Date | Change |
 |------|--------|
 | 2026-03-16 | Initial AGENTS.md created |
+| 2026-03-16 | Full sweep: added module details, fixed file format, expanded pitfalls, corrected deep link URL type |
