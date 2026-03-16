@@ -24,13 +24,13 @@ export default class TodoistVaultPlugin extends Plugin {
       id: 'sync-now',
       name: 'Sync Todoist now',
       callback: async () => {
-        new Notice('[TodoistVault] Syncing…')
+        new Notice('Syncing…')
         try {
           await this.runSync()
-          new Notice('[TodoistVault] Sync complete')
+          new Notice('Sync complete')
         } catch (err) {
-          console.error('[TodoistVault] Sync failed:', err)
-          new Notice('[TodoistVault] Sync failed — see console')
+          console.error('Sync failed:', err)
+          new Notice('Sync failed — see console')
         }
       },
     })
@@ -38,14 +38,14 @@ export default class TodoistVaultPlugin extends Plugin {
     // Register polling interval
     this.registerSyncInterval()
 
-    console.log('[TodoistVault] Plugin loaded')
+    console.debug('Plugin loaded')
   }
 
   onunload() {
     if (this.syncIntervalId !== null) {
       window.clearInterval(this.syncIntervalId)
     }
-    console.log('[TodoistVault] Plugin unloaded')
+    console.debug('Plugin unloaded')
   }
 
   async runSync() {
@@ -64,12 +64,10 @@ export default class TodoistVaultPlugin extends Plugin {
     }
 
     const intervalMs = this.settings.syncIntervalMinutes * 60 * 1000
-    this.syncIntervalId = window.setInterval(async () => {
-      try {
-        await this.runSync()
-      } catch (err) {
-        console.error('[TodoistVault] Interval sync failed:', err)
-      }
+    this.syncIntervalId = window.setInterval(() => {
+      this.runSync().catch((err: unknown) => {
+        console.error('Interval sync failed:', err)
+      })
     }, intervalMs)
   }
 

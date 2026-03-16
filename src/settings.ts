@@ -72,7 +72,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
         createFragment((f) => {
           f.appendText('Your Todoist API token. Find it in ')
           f.createEl('a', {
-            text: 'Todoist → Settings → Integrations',
+            text: 'Todoist → settings → integrations',
             href: 'https://app.todoist.com/app/settings/integrations/developer',
           })
           f.appendText('. Stored unencrypted in your vault\'s plugin data — protect your vault accordingly.')
@@ -96,7 +96,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       .setDesc('Vault folder where task files are written. Created automatically if missing.')
       .addText((text) =>
         text
-          .setPlaceholder('tasks')
+          .setPlaceholder('Tasks')
           .setValue(this.plugin.settings.syncFolder)
           .onChange(async (value) => {
             this.plugin.settings.syncFolder = value.trim() || 'tasks'
@@ -122,7 +122,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       .setDesc('Appended to every synced project filename (before .md). E.g. " tasks" → "NetCero tasks.md".')
       .addText((text) =>
         text
-          .setPlaceholder(' tasks')
+          .setPlaceholder(' Tasks')
           .setValue(this.plugin.settings.fileSuffix)
           .onChange(async (value) => {
             this.plugin.settings.fileSuffix = value
@@ -151,7 +151,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       .setDesc('Comma-separated list of project names to sync. Leave empty to sync all projects.')
       .addText((text) =>
         text
-          .setPlaceholder('Work, Personal')
+          .setPlaceholder('Work, personal')
           .setValue(this.plugin.settings.projectFilter.join(', '))
           .onChange(async (value) => {
             this.plugin.settings.projectFilter = value
@@ -167,7 +167,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Show completed tasks')
-      .setDesc('Render completed tasks as - [x] in the output files.')
+      .setDesc('Render completed tasks as - [X] in the output files.')
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.includeCompleted).onChange(async (value) => {
           this.plugin.settings.includeCompleted = value
@@ -208,7 +208,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Bidirectional sync')
       .setDesc(
-        'When enabled, checking a checkbox in Obsidian closes the task in Todoist on the next sync. Unchecking a completed task reopens it — but only if "Show completed tasks" is also enabled. Todoist remains the source of truth for task content.',
+        'When enabled, checking a checkbox in Obsidian closes the task in Todoist on the next sync. Unchecking a completed task reopens it — but only if "show completed tasks" is also enabled. Todoist remains the source of truth for task content.',
       )
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.bidirectionalSync).onChange(async (value) => {
@@ -222,7 +222,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include project URL')
-      .setDesc('Add todoist_url to frontmatter.')
+      .setDesc('Add Todoist_URL to frontmatter.')
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.frontmatter.includeUrl).onChange(async (value) => {
           this.plugin.settings.frontmatter.includeUrl = value
@@ -232,7 +232,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include project color')
-      .setDesc('Add todoist_color to frontmatter.')
+      .setDesc('Add Todoist_color to frontmatter.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.frontmatter.includeColor)
@@ -244,7 +244,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include tags')
-      .setDesc('Add tags: [todoist] to frontmatter.')
+      .setDesc('Add tags: [Todoist] to frontmatter.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.frontmatter.includeTags)
@@ -256,7 +256,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include is_favorite')
-      .setDesc('Add todoist_is_favorite to frontmatter.')
+      .setDesc('Add Todoist_is_favorite to frontmatter.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.frontmatter.includeIsFavorite)
@@ -268,7 +268,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include is_shared')
-      .setDesc('Add todoist_is_shared to frontmatter.')
+      .setDesc('Add Todoist_is_shared to frontmatter.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.frontmatter.includeIsShared)
@@ -280,10 +280,10 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Custom fields')
-      .setDesc('Raw YAML lines appended to frontmatter, one per line (e.g. type: task).')
+      .setDesc('Raw YAML lines appended to frontmatter, one per line (e.g. Type: task).')
       .addTextArea((textarea) =>
         textarea
-          .setPlaceholder('type: task\nsource: todoist')
+          .setPlaceholder('Type: task\nsource: Todoist')
           .setValue(this.plugin.settings.frontmatter.customFields)
           .onChange(async (value) => {
             this.plugin.settings.frontmatter.customFields = value
@@ -305,9 +305,9 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
             btn.setButtonText('Syncing…').setDisabled(true)
             try {
               await this.plugin.runSync()
-              new Notice('[TodoistVault] Sync complete')
+              new Notice('Sync complete')
             } catch {
-              new Notice('[TodoistVault] Sync failed — see console')
+              new Notice('Sync failed — see console')
             } finally {
               btn.setButtonText('Sync now').setDisabled(false)
             }

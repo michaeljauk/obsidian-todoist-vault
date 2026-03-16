@@ -23,7 +23,7 @@ const obsidianFetch: CustomFetch = async (url, options) => {
     ok: res.status >= 200 && res.status < 300,
     status: res.status,
     statusText: '',
-    headers: res.headers as Record<string, string>,
+    headers: res.headers,
     text: () => Promise.resolve(res.text),
     json: () => Promise.resolve(res.json as unknown),
   }
