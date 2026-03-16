@@ -1,6 +1,15 @@
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian'
 import type TodoistVaultPlugin from './main'
 
+export interface FrontmatterSettings {
+  includeUrl: boolean
+  includeColor: boolean
+  includeTags: boolean
+  includeIsFavorite: boolean
+  includeIsShared: boolean
+  customFields: string
+}
+
 export interface TodoistVaultSettings {
   apiToken: string
   syncFolder: string
@@ -8,6 +17,11 @@ export interface TodoistVaultSettings {
   projectFilter: string[]
   includeCompleted: boolean
   bidirectionalSync: boolean
+  taskDeepLinks: boolean
+  showVisibleMeta: boolean
+  taskLayout: 'list' | 'table'
+  showDescription: boolean
+  frontmatter: FrontmatterSettings
 }
 
 export const DEFAULT_SETTINGS: TodoistVaultSettings = {
@@ -17,6 +31,18 @@ export const DEFAULT_SETTINGS: TodoistVaultSettings = {
   projectFilter: [],
   includeCompleted: false,
   bidirectionalSync: false,
+  taskDeepLinks: false,
+  showVisibleMeta: true,
+  taskLayout: 'list',
+  showDescription: true,
+  frontmatter: {
+    includeUrl: true,
+    includeColor: true,
+    includeTags: true,
+    includeIsFavorite: false,
+    includeIsShared: false,
+    customFields: '',
+  },
 }
 
 function heading(containerEl: HTMLElement, text: string): void {
@@ -122,6 +148,54 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
+      .setName('Show metadata badges')
+      .setDesc('Show due date, priority, recurrence, and labels below each task.')
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.showVisibleMeta).onChange(async (value) => {
+          this.plugin.settings.showVisibleMeta = value
+          await this.plugin.saveSettings()
+        }),
+      )
+
+    new Setting(containerEl)
+      .setName('Task layout')
+      .setDesc(
+        'List: checkbox list with inline badges (bidirectional sync works). Table: Markdown table, visually richer but checkboxes are not interactive.',
+      )
+      .addDropdown((drop) =>
+        drop
+          .addOption('list', 'List (with badges)')
+          .addOption('table', 'Table')
+          .setValue(this.plugin.settings.taskLayout)
+          .onChange(async (value) => {
+            this.plugin.settings.taskLayout = value as 'list' | 'table'
+            await this.plugin.saveSettings()
+          }),
+      )
+
+    new Setting(containerEl)
+      .setName('Show task descriptions')
+      .setDesc(
+        'Show task description below each task (list: italic line; table: Description column).',
+      )
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.showDescription).onChange(async (value) => {
+          this.plugin.settings.showDescription = value
+          await this.plugin.saveSettings()
+        }),
+      )
+
+    new Setting(containerEl)
+      .setName('Task deep links')
+      .setDesc('Wrap task content in a link that opens the task in Todoist.')
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.taskDeepLinks).onChange(async (value) => {
+          this.plugin.settings.taskDeepLinks = value
+          await this.plugin.saveSettings()
+        }),
+      )
+
+    new Setting(containerEl)
       .setName('Bidirectional sync')
       .setDesc(
         'When enabled, checking a checkbox in Obsidian closes the task in Todoist on the next sync. Todoist remains the source of truth for task content.',
@@ -131,6 +205,80 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
           this.plugin.settings.bidirectionalSync = value
           await this.plugin.saveSettings()
         }),
+      )
+
+    // ── Frontmatter ───────────────────────────────────────────────────────────
+    heading(containerEl, 'Frontmatter')
+
+    new Setting(containerEl)
+      .setName('Include project URL')
+      .setDesc('Add todoist_url to frontmatter.')
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.frontmatter.includeUrl).onChange(async (value) => {
+          this.plugin.settings.frontmatter.includeUrl = value
+          await this.plugin.saveSettings()
+        }),
+      )
+
+    new Setting(containerEl)
+      .setName('Include project color')
+      .setDesc('Add todoist_color to frontmatter.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.frontmatter.includeColor)
+          .onChange(async (value) => {
+            this.plugin.settings.frontmatter.includeColor = value
+            await this.plugin.saveSettings()
+          }),
+      )
+
+    new Setting(containerEl)
+      .setName('Include tags')
+      .setDesc('Add tags: [todoist] to frontmatter.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.frontmatter.includeTags)
+          .onChange(async (value) => {
+            this.plugin.settings.frontmatter.includeTags = value
+            await this.plugin.saveSettings()
+          }),
+      )
+
+    new Setting(containerEl)
+      .setName('Include is_favorite')
+      .setDesc('Add todoist_is_favorite to frontmatter.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.frontmatter.includeIsFavorite)
+          .onChange(async (value) => {
+            this.plugin.settings.frontmatter.includeIsFavorite = value
+            await this.plugin.saveSettings()
+          }),
+      )
+
+    new Setting(containerEl)
+      .setName('Include is_shared')
+      .setDesc('Add todoist_is_shared to frontmatter.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.frontmatter.includeIsShared)
+          .onChange(async (value) => {
+            this.plugin.settings.frontmatter.includeIsShared = value
+            await this.plugin.saveSettings()
+          }),
+      )
+
+    new Setting(containerEl)
+      .setName('Custom fields')
+      .setDesc('Raw YAML lines appended to frontmatter, one per line (e.g. type: task).')
+      .addTextArea((textarea) =>
+        textarea
+          .setPlaceholder('type: task\nsource: todoist')
+          .setValue(this.plugin.settings.frontmatter.customFields)
+          .onChange(async (value) => {
+            this.plugin.settings.frontmatter.customFields = value
+            await this.plugin.saveSettings()
+          }),
       )
 
     // ── Actions ───────────────────────────────────────────────────────────────
