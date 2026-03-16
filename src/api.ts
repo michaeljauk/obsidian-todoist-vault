@@ -78,4 +78,8 @@ export class TodoistClient {
   async closeTask(taskId: string): Promise<void> {
     await this.api.closeTask(taskId)
   }
+
+  async reopenTask(taskId: string): Promise<void> {
+    await this.api.reopenTask(taskId)
+  }
 }
