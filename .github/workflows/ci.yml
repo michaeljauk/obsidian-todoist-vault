@@ -10,6 +10,8 @@ jobs:
   check:
     name: Typecheck & Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
