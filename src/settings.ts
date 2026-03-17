@@ -243,7 +243,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
         drop
           .addOption('lookback', 'Recent window (lookback days)')
           .addOption('incremental', 'Incremental (fetch delta, accumulate over time)')
-          .addOption('all', 'All time (may be slow for large projects)')
+          .addOption('all', 'All time — up to 2 years, chunked (slowest)')
           .setValue(this.plugin.settings.completedFetchMode)
           .onChange(async (value) => {
             this.plugin.settings.completedFetchMode = value as CompletedFetchMode
@@ -254,7 +254,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     lookbackDaysSetting = new Setting(containerEl)
       .setName('Lookback window')
-      .setDesc('Number of days to look back when fetching completed tasks. Also used as the bootstrap window for incremental mode.')
+      .setDesc('Number of days to look back when fetching completed tasks (max 89 — Todoist API limit). Also used as the bootstrap window for incremental mode.')
       .addText((text) =>
         text
           .setPlaceholder('30')

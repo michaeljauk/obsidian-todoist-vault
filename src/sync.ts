@@ -62,8 +62,7 @@ export async function runSync(
   const newCompletedTaskIds: string[] = []
   const previouslyCompleted = new Set(syncState.completedTaskIds)
   const writtenPaths = new Set<string>()
-  // Strip milliseconds — some API endpoints reject ISO dates with sub-second precision
-  const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+  const now = toApiDate(Date.now())
   // Seed with existing cache so projects not in this sync run don't lose their history
   const newCompletedTasksCache: Record<string, Task[]> = { ...(syncState.completedTasksCache ?? {}) }
 
@@ -79,15 +78,19 @@ export async function runSync(
       if (fetchCompleted) {
         try {
           if (settings.completedFetchMode === 'all') {
-            completedTasks = await client.getCompletedTasks(project.id, '2007-01-01T00:00:00Z', now)
+            // API enforces a max 3-month window per request; paginate backwards in 89-day chunks.
+            // Stop early when a chunk returns no tasks (nothing older exists).
+            completedTasks = await fetchCompletedChunked(client, project.id, now)
           } else if (settings.completedFetchMode === 'lookback') {
-            const since = new Date(Date.now() - settings.completedLookbackDays * 86_400_000).toISOString().replace(/\.\d{3}Z$/, 'Z')
+            // Cap at MAX_COMPLETED_WINDOW_DAYS to stay within the API's 3-month limit.
+            const days = Math.min(settings.completedLookbackDays, MAX_COMPLETED_WINDOW_DAYS)
+            const since = toApiDate(Date.now() - days * 86_400_000)
             completedTasks = await client.getCompletedTasks(project.id, since, now)
           } else {
             // incremental: fetch delta since last sync, merge with cached tasks
             const since =
               syncState.lastCompletedFetchAt ??
-              new Date(Date.now() - settings.completedLookbackDays * 86_400_000).toISOString().replace(/\.\d{3}Z$/, 'Z')
+              toApiDate(Date.now() - Math.min(settings.completedLookbackDays, MAX_COMPLETED_WINDOW_DAYS) * 86_400_000)
             const delta = await client.getCompletedTasks(project.id, since, now)
             const cached = syncState.completedTasksCache[project.id] ?? []
             const taskMap = new Map(cached.map((t) => [t.id, t]))
@@ -96,12 +99,7 @@ export async function runSync(
             newCompletedTasksCache[project.id] = completedTasks
           }
         } catch (err) {
-          const status = (err as { httpStatusCode?: number }).httpStatusCode
-          const body = (err as { responseData?: unknown }).responseData
-          console.warn(
-            `[TodoistVault] Failed to fetch completed tasks for "${project.name}" (HTTP ${status ?? '?'}) — syncing active tasks only.`,
-            body ? `API response: ${JSON.stringify(body)}` : '(empty response body)',
-          )
+          console.warn(`[TodoistVault] Failed to fetch completed tasks for "${project.name}" — syncing active tasks only:`, err)
         }
       }
 
@@ -289,6 +287,41 @@ async function cleanupOrphanedArchiveFiles(
       }
     }
   }
+}
+
+/** Max window the Todoist API allows per completed-tasks request (just under 3 months). */
+const MAX_COMPLETED_WINDOW_DAYS = 89
+
+/** Formats a timestamp as an ISO string without milliseconds (required by Todoist API). */
+function toApiDate(ms: number): string {
+  return new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z')
+}
+
+/**
+ * Fetches completed tasks for a project across all available history by paginating
+ * backwards in MAX_COMPLETED_WINDOW_DAYS chunks. Stops early when a chunk returns
+ * no tasks (nothing older exists). Capped at MAX_ALL_HISTORY_DAYS to avoid runaway calls.
+ */
+const MAX_ALL_HISTORY_DAYS = 365 * 2 // 2 years
+
+async function fetchCompletedChunked(
+  client: TodoistClient,
+  projectId: string,
+  until: string,
+): Promise<Task[]> {
+  const results: Task[] = []
+  const oldestMs = Date.now() - MAX_ALL_HISTORY_DAYS * 86_400_000
+  let chunkUntilMs = new Date(until).getTime()
+
+  while (chunkUntilMs > oldestMs) {
+    const chunkSinceMs = Math.max(oldestMs, chunkUntilMs - MAX_COMPLETED_WINDOW_DAYS * 86_400_000)
+    const chunk = await client.getCompletedTasks(projectId, toApiDate(chunkSinceMs), toApiDate(chunkUntilMs))
+    results.push(...chunk)
+    if (chunk.length === 0) break // no tasks in window — nothing older
+    chunkUntilMs = chunkSinceMs
+  }
+
+  return results
 }
 
 function sanitizeFilename(name: string): string {

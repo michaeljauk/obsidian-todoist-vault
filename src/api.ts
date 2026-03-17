@@ -12,18 +12,13 @@ export type AnyProject = PersonalProject | WorkspaceProject
 
 // Obsidian-compatible fetch adapter (mirrors the SDK's own obsidian-fetch-adapter)
 const obsidianFetch: CustomFetch = async (url, options) => {
-  const urlStr = url.toString()
   const res = await requestUrl({
-    url: urlStr,
+    url: url.toString(),
     method: (options?.method ?? 'GET') as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
     headers: options?.headers as Record<string, string> | undefined,
     body: options?.body as string | undefined,
     throw: false,
   })
-  if (res.status >= 400 && urlStr.includes('completed')) {
-    console.debug('[TodoistVault] completed tasks request:', urlStr)
-    console.debug('[TodoistVault] completed tasks response:', res.status, res.text)
-  }
   return {
     ok: res.status >= 200 && res.status < 300,
     status: res.status,
