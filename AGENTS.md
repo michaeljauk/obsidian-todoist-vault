@@ -82,12 +82,15 @@ Pure module — no side effects, no Obsidian API imports. Takes project data and
 
 ### `sync.ts`
 
+Exports `runSync(app, settings, syncState): Promise<SyncState>`. `SyncState` holds the set of task IDs that were completed at the end of the previous sync; it is persisted in plugin data by `main.ts` and threaded through every sync cycle to detect real user-driven checkbox changes vs. stale state.
+
 Orchestrates one full sync cycle:
 1. Fetch all projects, apply `projectFilter`
 2. For each project, fetch sections and tasks in parallel (`Promise.all`)
-3. If `bidirectionalSync`: read existing file, parse states, close/reopen changed tasks
+3. If `bidirectionalSync`: read existing file, parse states, compare against `syncState` to close/reopen only genuinely user-changed tasks
 4. Render project to string via `renderProject()`
 5. Write file (create or modify)
+6. Return updated `SyncState` (completed task IDs after bidirectional resolution)
 
 File identity uses `todoist_project_id` from frontmatter — if `filePrefix`/`fileSuffix` changed, scans the folder for a file with matching frontmatter and renames it rather than creating a duplicate.
 
@@ -276,3 +279,5 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-16 | Initial AGENTS.md created |
 | 2026-03-16 | Full sweep: added module details, fixed file format, expanded pitfalls, corrected deep link URL type |
 | 2026-03-16 | Removed table layout; updated commit convention to require scopes |
+| 2026-03-17 | Updated sync.ts section to document SyncState parameter/return value (added in 1.0.3) |
+| 2026-03-17 | Fixed README version badge (1.0.1 → 1.0.3); fixed contributing.md plugin folder path (obsidian-todoist-vault → todoist-vault-sync) |

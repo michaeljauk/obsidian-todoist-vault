@@ -4,7 +4,7 @@
 
 An Obsidian community plugin that syncs your Todoist projects and tasks to **real markdown files** in your vault.
 
-![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-purple) ![Version](https://img.shields.io/badge/version-1.0.1-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Min Obsidian](https://img.shields.io/badge/Obsidian-1.4.0%2B-blueviolet)
+![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-purple) ![Version](https://img.shields.io/github/manifest-json/v/michaeljauk/obsidian-todoist-vault) ![License](https://img.shields.io/badge/license-MIT-green) ![Min Obsidian](https://img.shields.io/badge/Obsidian-1.4.0%2B-blueviolet)
 
 Unlike query-based plugins, this writes actual `.md` files so they:
 

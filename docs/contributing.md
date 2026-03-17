@@ -23,7 +23,7 @@ bun run format     # prettier --write
 To load the plugin in Obsidian, symlink (or copy) `main.js` + `manifest.json` into your vault:
 
 ```
-<your-vault>/.obsidian/plugins/obsidian-todoist-vault/
+<your-vault>/.obsidian/plugins/todoist-vault-sync/
 ```
 
 After each rebuild, go to **Settings → Community plugins → Reload plugins** in Obsidian. There are no automated tests — verification is manual.
