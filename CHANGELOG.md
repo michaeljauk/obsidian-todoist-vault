@@ -2,6 +2,12 @@
 
 All notable changes to Todoist Vault Sync are documented here.
 
+## [1.0.3] — 2026-03-17
+
+### Fixed
+
+- Bidirectional sync: added `SyncState` persistence to prevent stale checkbox state from incorrectly re-closing tasks that Todoist reopened, or re-opening tasks that were just completed externally. The set of completed task IDs is now tracked across syncs and stored in plugin data.
+
 ## [1.0.2] — 2026-03-17
 
 ### Fixed
