@@ -2,9 +2,11 @@ import { Notice, Plugin } from 'obsidian'
 import { DEFAULT_SETTINGS, TodoistVaultSettingTab } from './settings'
 import type { TodoistVaultSettings } from './settings'
 import { runSync } from './sync'
+import type { SyncState } from './sync'
 
 export default class TodoistVaultPlugin extends Plugin {
   settings!: TodoistVaultSettings
+  private syncState: SyncState = { completedTaskIds: [] }
   private syncIntervalId: number | null = null
   private isSyncing = false
 
@@ -52,7 +54,8 @@ export default class TodoistVaultPlugin extends Plugin {
     if (this.isSyncing) return
     this.isSyncing = true
     try {
-      await runSync(this.app, this.settings)
+      this.syncState = await runSync(this.app, this.settings, this.syncState)
+      await this.persistSyncState()
     } finally {
       this.isSyncing = false
     }
@@ -72,12 +75,24 @@ export default class TodoistVaultPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
+    const data = (await this.loadData()) ?? {}
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, data)
+    if (data._syncState) {
+      this.syncState = data._syncState as SyncState
+    }
   }
 
   async saveSettings() {
-    await this.saveData(this.settings)
+    await this.persistData()
     // Re-register interval in case syncIntervalMinutes changed
     this.registerSyncInterval()
+  }
+
+  private async persistSyncState() {
+    await this.persistData()
+  }
+
+  private async persistData() {
+    await this.saveData({ ...this.settings, _syncState: this.syncState })
   }
 }
