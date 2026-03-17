@@ -75,6 +75,19 @@ export class TodoistClient {
     return results
   }
 
+  async getCompletedTasks(projectId: string, since: string, until: string): Promise<Task[]> {
+    const results: Task[] = []
+    let cursor: string | undefined
+
+    do {
+      const page = await this.api.getCompletedTasksByCompletionDate({ projectId, since, until, cursor })
+      results.push(...page.items)
+      cursor = page.nextCursor ?? undefined
+    } while (cursor)
+
+    return results
+  }
+
   async closeTask(taskId: string): Promise<void> {
     await this.api.closeTask(taskId)
   }

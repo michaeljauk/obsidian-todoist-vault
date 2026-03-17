@@ -1,6 +1,6 @@
 import type { Section, Task } from '@doist/todoist-api-typescript'
 import type { AnyProject } from './api'
-import type { FrontmatterSettings } from './settings'
+import type { CompletedMode, FrontmatterSettings } from './settings'
 
 function formatDueDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -32,9 +32,11 @@ function formatTaskMeta(task: Task): string {
 function renderFrontmatter(
   project: AnyProject,
   fm: FrontmatterSettings,
+  isArchive = false,
 ): string {
   const lines: string[] = ['---']
   lines.push(`todoist_project_id: "${project.id}"`)
+  if (isArchive) lines.push('todoist_is_archive: true')
   if (fm.includeUrl) lines.push(`todoist_url: "${project.url}"`)
   if (fm.includeColor) lines.push(`todoist_color: "${project.color}"`)
   if (fm.includeTags) lines.push(`tags:\n  - todoist`)
@@ -134,34 +136,25 @@ function renderTaskList(
   return lines
 }
 
-export function renderProject(
-  project: AnyProject,
+/**
+ * Builds the task body lines for a given set of display tasks.
+ * @param headingLevel - Markdown heading level for section names (default 2 → ##, use 3 for sub-sections)
+ * @param emptyMessage - Text shown when displayTasks is empty
+ */
+function buildTaskLines(
+  displayTasks: Task[],
   sections: Section[],
-  tasks: Task[],
-  includeCompleted: boolean,
-  fm: FrontmatterSettings,
-  taskDeepLinks: boolean,
+  deepLinks: boolean,
   showVisibleMeta: boolean,
   showDescription: boolean,
-): string {
-  const lines: string[] = []
-
-  // Frontmatter
-  lines.push(renderFrontmatter(project, fm))
-  lines.push('')
-
-  // Title
-  lines.push(`# ${project.name}`)
-  lines.push('')
-
+  emptyMessage = '_No tasks_',
+  headingLevel = 2,
+): string[] {
+  const hPrefix = '#'.repeat(headingLevel) + ' '
   const isCompleted = (t: Task) => t.completedAt !== null
-  const displayTasks = includeCompleted ? tasks : tasks.filter((t) => !isCompleted(t))
-
-  // Only top-level tasks (no parent, or parent is in a different project/not fetched)
   const taskIds = new Set(displayTasks.map((t) => t.id))
   const isRootTask = (t: Task) => !t.parentId || !taskIds.has(t.parentId)
 
-  // Build section map (root tasks only — children are rendered recursively)
   const sectionMap = new Map<string | null, Task[]>()
   sectionMap.set(null, [])
   for (const section of sections) {
@@ -174,30 +167,91 @@ export function renderProject(
     sectionMap.get(key)!.push(task)
   }
 
-  // Render named sections
+  const lines: string[] = []
+
   for (const section of sections) {
     const rootTasks = sectionMap.get(section.id) ?? []
     if (rootTasks.length === 0) continue
-
-    lines.push(`## ${section.name}`)
+    lines.push(`${hPrefix}${section.name}`)
     lines.push('')
-    lines.push(...renderTaskList(rootTasks, displayTasks, isCompleted, taskDeepLinks, showVisibleMeta, showDescription))
+    lines.push(...renderTaskList(rootTasks, displayTasks, isCompleted, deepLinks, showVisibleMeta, showDescription))
     lines.push('')
   }
 
-  // Render unsectioned tasks under ## Inbox
   const unsectioned = sectionMap.get(null) ?? []
   if (unsectioned.length > 0) {
-    lines.push('## Inbox')
+    lines.push(`${hPrefix}Inbox`)
     lines.push('')
-    lines.push(...renderTaskList(unsectioned, displayTasks, isCompleted, taskDeepLinks, showVisibleMeta, showDescription))
+    lines.push(...renderTaskList(unsectioned, displayTasks, isCompleted, deepLinks, showVisibleMeta, showDescription))
     lines.push('')
   }
 
   if (displayTasks.length === 0) {
-    lines.push('_No tasks_')
+    lines.push(emptyMessage)
     lines.push('')
   }
 
+  return lines
+}
+
+export interface RenderResult {
+  projectContent: string
+  archiveContent: string | null
+}
+
+export function renderProject(
+  project: AnyProject,
+  sections: Section[],
+  tasks: Task[],
+  completedMode: CompletedMode,
+  fm: FrontmatterSettings,
+  taskDeepLinks: boolean,
+  showVisibleMeta: boolean,
+  showDescription: boolean,
+): RenderResult {
+  const activeTasks = tasks.filter((t) => t.completedAt === null)
+  const completedTasks = tasks.filter((t) => t.completedAt !== null)
+
+  const header = [renderFrontmatter(project, fm), '', `# ${project.name}`, '']
+
+  let projectLines: string[]
+  let archiveContent: string | null = null
+
+  if (completedMode === 'hide') {
+    projectLines = buildTaskLines(activeTasks, sections, taskDeepLinks, showVisibleMeta, showDescription)
+  } else if (completedMode === 'inline') {
+    projectLines = buildTaskLines(tasks, sections, taskDeepLinks, showVisibleMeta, showDescription)
+  } else if (completedMode === 'archive-section') {
+    projectLines = buildTaskLines(activeTasks, sections, taskDeepLinks, showVisibleMeta, showDescription, '_No active tasks._')
+    if (completedTasks.length > 0) {
+      projectLines.push('## Completed')
+      projectLines.push('')
+      projectLines.push(
+        ...buildTaskLines(completedTasks, sections, taskDeepLinks, showVisibleMeta, showDescription, '_No completed tasks._', 3),
+      )
+    }
+  } else {
+    // 'archive-file' | 'archive-folder'
+    projectLines = buildTaskLines(activeTasks, sections, taskDeepLinks, showVisibleMeta, showDescription)
+    archiveContent = buildArchiveContent(project, sections, completedTasks, fm, taskDeepLinks, showVisibleMeta, showDescription)
+  }
+
+  return {
+    projectContent: [...header, ...projectLines].join('\n'),
+    archiveContent,
+  }
+}
+
+function buildArchiveContent(
+  project: AnyProject,
+  sections: Section[],
+  completedTasks: Task[],
+  fm: FrontmatterSettings,
+  taskDeepLinks: boolean,
+  showVisibleMeta: boolean,
+  showDescription: boolean,
+): string {
+  const lines = [renderFrontmatter(project, fm, true), '', `# ${project.name}`, '']
+  lines.push(...buildTaskLines(completedTasks, sections, taskDeepLinks, showVisibleMeta, showDescription, '_No completed tasks._'))
   return lines.join('\n')
 }
