@@ -106,7 +106,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Filename prefix')
-      .setDesc('Prepended to every synced project filename. E.g. "📋 " → "📋 NetCero.md". Useful to avoid name collisions with project hub notes.')
+      .setDesc('Prepended to every synced project filename (e.g. "📋 "). Useful to avoid name collisions with project hub notes.')
       .addText((text) =>
         text
           .setPlaceholder('📋 ')
@@ -119,7 +119,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Filename suffix')
-      .setDesc('Appended to every synced project filename (before .md). E.g. " tasks" → "NetCero tasks.md".')
+      .setDesc('Appended to every synced project filename before the .md extension (e.g. " tasks").')
       .addText((text) =>
         text
           .setPlaceholder(' Tasks')
@@ -132,7 +132,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Sync interval')
-      .setDesc('How often to pull from Todoist in the background (minutes, minimum 1).')
+      .setDesc('Background sync interval in minutes (minimum 1).')
       .addText((text) =>
         text
           .setPlaceholder('15')
@@ -197,7 +197,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Task deep links')
-      .setDesc('Wrap task content in a link that opens the task in Todoist.')
+      .setDesc('Wrap each task in a deep link back to its source.')
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.taskDeepLinks).onChange(async (value) => {
           this.plugin.settings.taskDeepLinks = value
@@ -208,7 +208,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Bidirectional sync')
       .setDesc(
-        'When enabled, checking a checkbox in Obsidian closes the task in Todoist on the next sync. Unchecking a completed task reopens it — but only if "show completed tasks" is also enabled. Todoist remains the source of truth for task content.',
+        'Checking a checkbox closes the task on the next sync. Unchecking a completed task reopens it — but only if "show completed tasks" is also enabled. The remote project remains the source of truth for task content.',
       )
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.bidirectionalSync).onChange(async (value) => {
@@ -222,7 +222,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include project URL')
-      .setDesc('Add Todoist_URL to frontmatter.')
+      .setDesc('Include the project URL in frontmatter.')
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.frontmatter.includeUrl).onChange(async (value) => {
           this.plugin.settings.frontmatter.includeUrl = value
@@ -232,7 +232,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include project color')
-      .setDesc('Add Todoist_color to frontmatter.')
+      .setDesc('Include the project color in frontmatter.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.frontmatter.includeColor)
@@ -244,7 +244,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include tags')
-      .setDesc('Add tags: [Todoist] to frontmatter.')
+      .setDesc('Include a tags array in frontmatter.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.frontmatter.includeTags)
@@ -256,7 +256,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include is_favorite')
-      .setDesc('Add Todoist_is_favorite to frontmatter.')
+      .setDesc('Include the favorite status in frontmatter.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.frontmatter.includeIsFavorite)
@@ -268,7 +268,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Include is_shared')
-      .setDesc('Add Todoist_is_shared to frontmatter.')
+      .setDesc('Include the shared status in frontmatter.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.frontmatter.includeIsShared)
@@ -283,7 +283,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       .setDesc('Raw YAML lines appended to frontmatter, one per line (e.g. Type: task).')
       .addTextArea((textarea) =>
         textarea
-          .setPlaceholder('Type: task\nsource: Todoist')
+          .setPlaceholder('Type: task')
           .setValue(this.plugin.settings.frontmatter.customFields)
           .onChange(async (value) => {
             this.plugin.settings.frontmatter.customFields = value
@@ -296,7 +296,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Sync now')
-      .setDesc('Manually trigger a full sync from Todoist.')
+      .setDesc('Manually trigger a full sync.')
       .addButton((btn) =>
         btn
           .setButtonText('Sync now')

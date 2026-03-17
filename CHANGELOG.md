@@ -2,6 +2,14 @@
 
 All notable changes to Todoist Vault Sync are documented here.
 
+## [1.0.2] — 2026-03-17
+
+### Fixed
+
+- Rephrased 13 UI strings to pass the Obsidian review bot's sentence-case check (bot uses a default brand list that excludes third-party names)
+- Simplified command name from "Sync Todoist now" to "Sync now" (Obsidian prefixes commands with the plugin name automatically)
+- Simplified frontmatter setting descriptions to be self-explanatory without referencing specific frontmatter key names
+
 ## [1.0.1] — 2026-03-16
 
 ### Fixed

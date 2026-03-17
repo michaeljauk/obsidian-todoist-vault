@@ -22,7 +22,7 @@ export default class TodoistVaultPlugin extends Plugin {
     // Command: manual sync
     this.addCommand({
       id: 'sync-now',
-      name: 'Sync Todoist now',
+      name: 'Sync now',
       callback: async () => {
         new Notice('Syncing…')
         try {
