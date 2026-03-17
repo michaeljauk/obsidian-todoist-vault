@@ -62,7 +62,8 @@ export async function runSync(
   const newCompletedTaskIds: string[] = []
   const previouslyCompleted = new Set(syncState.completedTaskIds)
   const writtenPaths = new Set<string>()
-  const now = new Date().toISOString()
+  // Strip milliseconds — some API endpoints reject ISO dates with sub-second precision
+  const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
   // Seed with existing cache so projects not in this sync run don't lose their history
   const newCompletedTasksCache: Record<string, Task[]> = { ...(syncState.completedTasksCache ?? {}) }
 
@@ -80,13 +81,13 @@ export async function runSync(
           if (settings.completedFetchMode === 'all') {
             completedTasks = await client.getCompletedTasks(project.id, '2007-01-01T00:00:00Z', now)
           } else if (settings.completedFetchMode === 'lookback') {
-            const since = new Date(Date.now() - settings.completedLookbackDays * 86_400_000).toISOString()
+            const since = new Date(Date.now() - settings.completedLookbackDays * 86_400_000).toISOString().replace(/\.\d{3}Z$/, 'Z')
             completedTasks = await client.getCompletedTasks(project.id, since, now)
           } else {
             // incremental: fetch delta since last sync, merge with cached tasks
             const since =
               syncState.lastCompletedFetchAt ??
-              new Date(Date.now() - settings.completedLookbackDays * 86_400_000).toISOString()
+              new Date(Date.now() - settings.completedLookbackDays * 86_400_000).toISOString().replace(/\.\d{3}Z$/, 'Z')
             const delta = await client.getCompletedTasks(project.id, since, now)
             const cached = syncState.completedTasksCache[project.id] ?? []
             const taskMap = new Map(cached.map((t) => [t.id, t]))
@@ -95,7 +96,12 @@ export async function runSync(
             newCompletedTasksCache[project.id] = completedTasks
           }
         } catch (err) {
-          console.warn(`[TodoistVault] Failed to fetch completed tasks for "${project.name}" — syncing active tasks only:`, err)
+          const status = (err as { httpStatusCode?: number }).httpStatusCode
+          const body = (err as { responseData?: unknown }).responseData
+          console.warn(
+            `[TodoistVault] Failed to fetch completed tasks for "${project.name}" (HTTP ${status ?? '?'}) — syncing active tasks only.`,
+            body ? `API response: ${JSON.stringify(body)}` : '(empty response body)',
+          )
         }
       }
 
