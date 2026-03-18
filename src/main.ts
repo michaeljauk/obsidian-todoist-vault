@@ -1,4 +1,4 @@
-import { Notice, Plugin, setTooltip } from 'obsidian'
+import { Notice, Plugin } from 'obsidian'
 import { DEFAULT_SETTINGS, TodoistVaultSettingTab } from './settings'
 import type { TodoistVaultSettings } from './settings'
 import { runSync } from './sync'
@@ -59,7 +59,7 @@ export default class TodoistVaultPlugin extends Plugin {
     // Status bar indicator — also clickable to trigger sync
     this.statusBarItem = this.addStatusBarItem()
     this.statusBarItem.addClass('todoist-vault-status-bar')
-    setTooltip(this.statusBarItem, 'Sync Todoist now', { placement: 'top' })
+    this.statusBarItem.setAttribute('aria-label', 'Sync Todoist now')
     this.statusBarItem.addEventListener('click', () => {
       this.runSync().catch((err: unknown) => {
         console.error('Manual sync failed:', err)

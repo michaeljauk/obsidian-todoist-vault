@@ -1,3 +1,7 @@
-.todoist-vault-status-bar {
+.status-bar-item:has(.todoist-vault-status-bar) {
   cursor: pointer;
+
+  &:hover {
+    background-color: var(--background-modifier-hover);
+  }
 }
