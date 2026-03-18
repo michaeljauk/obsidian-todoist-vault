@@ -234,7 +234,7 @@ bun run format       # prettier --write
    ```
 3. In Obsidian: **Settings → Community plugins → Reload plugins**
 
-There are currently **no automated tests**. Manual vault testing is the verification method.
+Run tests with `bun test` (or `bun run test`). Test files live alongside source as `*.test.ts`. Currently `renderer.ts` is covered — it is the only pure module and the natural place for unit tests. `sync.ts`, `api.ts`, and `main.ts` depend on the Obsidian API and are tested manually via vault.
 
 ### Releasing
 
@@ -319,3 +319,4 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-18 | Replaced `includeCompleted` with `completedMode` (5 options); added archive file/folder/section support; updated renderer.ts and sync.ts sections |
 | 2026-03-18 | Fixed completed task fetching: `getTasks` returns active tasks only; added `getCompletedTasks` using `getCompletedTasksByCompletionDate` API |
 | 2026-03-18 | Added configurable `completedFetchMode` (lookback/incremental/all); chunked fetching for 3-month API window; rate limit Notice on 429; updated SyncState, settings table, and module docs |
+| 2026-03-18 | Added `bun test` unit tests for `renderer.ts` (29 tests); added `test` script to package.json |
