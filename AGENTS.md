@@ -226,7 +226,22 @@ bun run build        # production build
 bun run typecheck    # tsc --noEmit
 bun run lint         # eslint
 bun run format       # prettier --write
+bun run format:check # prettier --check (what CI runs — run this before opening a PR)
+bun test             # unit tests
 ```
+
+### Pre-PR checklist
+
+**Before opening or pushing to a PR, always run the full CI suite locally and confirm all steps pass:**
+
+```bash
+bun run typecheck
+bun run lint
+bun run format:check
+bun test
+```
+
+CI runs these four steps in order (`format:check` not `format`). A PR that fails any of them will be blocked. Fix failures before pushing — especially Prettier: run `bun run format` then re-check with `bun run format:check`.
 
 ### Testing in Obsidian
 
@@ -330,3 +345,4 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-18 | Added status bar indicator (clickable, status dot, hover state), ribbon sync icon, styles.css; updated Obsidian API patterns, architecture tree, release workflow |
 | 2026-03-18 | Full sweep: added cleanupOrphanedArchiveFiles step to sync.ts section; added todoist_is_archive to file format spec; added trashFile to Obsidian API patterns; fixed README bidirectional sync outdated "Show completed tasks" terminology |
 | 2026-03-18 | Extracted RenderOptions interface; unified renderTask/renderTaskTree; buildChildrenMap now called once per buildTaskLines; projectFilter matches by name or ID; incremental cache trimmed to MAX_ALL_HISTORY_DAYS; parser.ts regex hardened; duplicate folder creation removed from main.ts |
+| 2026-03-18 | Added pre-PR checklist to development workflow; added format:check and bun test to script list |
