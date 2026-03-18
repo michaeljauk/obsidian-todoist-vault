@@ -1,6 +1,7 @@
 import { App, Notice, TFile, TFolder, normalizePath } from 'obsidian'
 import type { Task } from '@doist/todoist-api-typescript'
 import { TodoistClient } from './api'
+import type { RenderOptions } from './renderer'
 import { renderProject } from './renderer'
 import { parseTaskStates } from './parser'
 import type { TodoistVaultSettings } from './settings'
@@ -57,10 +58,12 @@ export async function runSync(
     throw err
   }
 
-  // Apply project filter
+  // Apply project filter — matches by name or project ID (IDs are stable across renames)
   const filtered =
     settings.projectFilter.length > 0
-      ? projects.filter((p) => settings.projectFilter.includes(p.name))
+      ? projects.filter(
+          (p) => settings.projectFilter.includes(p.name) || settings.projectFilter.includes(p.id),
+        )
       : projects
 
   const newCompletedTaskIds: string[] = []
@@ -104,7 +107,11 @@ export async function runSync(
             const cached = syncState.completedTasksCache[project.id] ?? []
             const taskMap = new Map(cached.map((t) => [t.id, t]))
             for (const t of delta) taskMap.set(t.id, t)
-            completedTasks = [...taskMap.values()]
+            // Trim cache to MAX_ALL_HISTORY_DAYS to prevent data.json from growing unboundedly
+            const cutoffMs = Date.now() - MAX_ALL_HISTORY_DAYS * 86_400_000
+            completedTasks = [...taskMap.values()].filter(
+              (t) => t.completedAt === null || new Date(t.completedAt).getTime() >= cutoffMs,
+            )
             newCompletedTasksCache[project.id] = completedTasks
           }
         } catch (err) {
@@ -181,15 +188,18 @@ export async function runSync(
         }
       }
 
+      const renderOptions: RenderOptions = {
+        taskDeepLinks: settings.taskDeepLinks,
+        showVisibleMeta: settings.showVisibleMeta,
+        showDescription: settings.showDescription,
+      }
       const result = renderProject(
         project,
         sections,
         tasks,
         settings.completedMode,
         settings.frontmatter,
-        settings.taskDeepLinks,
-        settings.showVisibleMeta,
-        settings.showDescription,
+        renderOptions,
       )
 
       if (existingFile instanceof TFile) {

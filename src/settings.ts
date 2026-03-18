@@ -170,7 +170,9 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Project filter')
-      .setDesc('Comma-separated list of project names to sync. Leave empty to sync all projects.')
+      .setDesc(
+        'Comma-separated list of project names to sync. Use a project ID instead of a name to survive renames. Leave empty to sync all projects.',
+      )
       .addText((text) =>
         text
           .setPlaceholder('Work, personal')

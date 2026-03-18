@@ -329,3 +329,4 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-18 | Added GitHub PR template; updated contributing.md and README.md to reflect completedMode enum and bun test |
 | 2026-03-18 | Added status bar indicator (clickable, status dot, hover state), ribbon sync icon, styles.css; updated Obsidian API patterns, architecture tree, release workflow |
 | 2026-03-18 | Full sweep: added cleanupOrphanedArchiveFiles step to sync.ts section; added todoist_is_archive to file format spec; added trashFile to Obsidian API patterns; fixed README bidirectional sync outdated "Show completed tasks" terminology |
+| 2026-03-18 | Extracted RenderOptions interface; unified renderTask/renderTaskTree; buildChildrenMap now called once per buildTaskLines; projectFilter matches by name or ID; incremental cache trimmed to MAX_ALL_HISTORY_DAYS; parser.ts regex hardened; duplicate folder creation removed from main.ts |

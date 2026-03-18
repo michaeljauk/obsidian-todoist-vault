@@ -75,42 +75,30 @@ function formatTaskContent(task: Task, hasChildren: boolean, deepLinks: boolean)
   return deepLinks ? `[${label}](${task.url})` : label
 }
 
-function renderTaskTree(
-  taskId: string,
+function renderTask(
+  task: Task,
   childrenMap: Map<string, Task[]>,
   isCompleted: (t: Task) => boolean,
   indent: number,
   lines: string[],
-  deepLinks: boolean,
-  showVisibleMeta: boolean,
-  showDescription: boolean,
+  options: RenderOptions,
 ): void {
-  const children = childrenMap.get(taskId) ?? []
-  for (const task of children) {
-    const prefix = '  '.repeat(indent)
-    const checkbox = isCompleted(task) ? '[x]' : '[ ]'
-    const hasChildren = (childrenMap.get(task.id)?.length ?? 0) > 0
-    const content = formatTaskContent(task, hasChildren, deepLinks)
-    lines.push(`${prefix}- ${checkbox} ${content} ${formatTaskMeta(task)}`)
-    const meta = showVisibleMeta ? formatVisibleMeta(task) : ''
-    if (meta) lines.push(`${prefix}  ${meta}`)
-    if (showDescription && task.description.trim()) {
-      const descIndent = `${prefix}  `
-      lines.push(`${descIndent}> [!desc]- Description`)
-      for (const line of task.description.trim().split('\n')) {
-        lines.push(line.trim() ? `${descIndent}> ${line}` : `${descIndent}>`)
-      }
+  const prefix = '  '.repeat(indent)
+  const checkbox = isCompleted(task) ? '[x]' : '[ ]'
+  const hasChildren = (childrenMap.get(task.id)?.length ?? 0) > 0
+  const content = formatTaskContent(task, hasChildren, options.taskDeepLinks)
+  lines.push(`${prefix}- ${checkbox} ${content} ${formatTaskMeta(task)}`)
+  const meta = options.showVisibleMeta ? formatVisibleMeta(task) : ''
+  if (meta) lines.push(`${prefix}  ${meta}`)
+  if (options.showDescription && task.description.trim()) {
+    const descIndent = `${prefix}  `
+    lines.push(`${descIndent}> [!desc]- Description`)
+    for (const line of task.description.trim().split('\n')) {
+      lines.push(line.trim() ? `${descIndent}> ${line}` : `${descIndent}>`)
     }
-    renderTaskTree(
-      task.id,
-      childrenMap,
-      isCompleted,
-      indent + 1,
-      lines,
-      deepLinks,
-      showVisibleMeta,
-      showDescription,
-    )
+  }
+  for (const child of childrenMap.get(task.id) ?? []) {
+    renderTask(child, childrenMap, isCompleted, indent + 1, lines, options)
   }
 }
 
@@ -129,39 +117,13 @@ function buildChildrenMap(allTasks: Task[]): Map<string, Task[]> {
 
 function renderTaskList(
   rootTasks: Task[],
-  allTasks: Task[],
+  childrenMap: Map<string, Task[]>,
   isCompleted: (t: Task) => boolean,
-  deepLinks: boolean,
-  showVisibleMeta: boolean,
-  showDescription: boolean,
+  options: RenderOptions,
 ): string[] {
-  const childrenMap = buildChildrenMap(allTasks)
-
   const lines: string[] = []
   for (let i = 0; i < rootTasks.length; i++) {
-    const task = rootTasks[i]
-    const checkbox = isCompleted(task) ? '[x]' : '[ ]'
-    const hasChildren = (childrenMap.get(task.id)?.length ?? 0) > 0
-    const content = formatTaskContent(task, hasChildren, deepLinks)
-    lines.push(`- ${checkbox} ${content} ${formatTaskMeta(task)}`)
-    const meta = showVisibleMeta ? formatVisibleMeta(task) : ''
-    if (meta) lines.push(`  ${meta}`)
-    if (showDescription && task.description.trim()) {
-      lines.push(`  > [!desc]- Description`)
-      for (const line of task.description.trim().split('\n')) {
-        lines.push(line.trim() ? `  > ${line}` : `  >`)
-      }
-    }
-    renderTaskTree(
-      task.id,
-      childrenMap,
-      isCompleted,
-      1,
-      lines,
-      deepLinks,
-      showVisibleMeta,
-      showDescription,
-    )
+    renderTask(rootTasks[i], childrenMap, isCompleted, 0, lines, options)
     if (i < rootTasks.length - 1) lines.push('')
   }
   return lines
@@ -175,9 +137,7 @@ function renderTaskList(
 function buildTaskLines(
   displayTasks: Task[],
   sections: Section[],
-  deepLinks: boolean,
-  showVisibleMeta: boolean,
-  showDescription: boolean,
+  options: RenderOptions,
   emptyMessage = '_No tasks_',
   headingLevel = 2,
 ): string[] {
@@ -185,6 +145,8 @@ function buildTaskLines(
   const isCompleted = (t: Task) => t.completedAt !== null
   const taskIds = new Set(displayTasks.map((t) => t.id))
   const isRootTask = (t: Task) => !t.parentId || !taskIds.has(t.parentId)
+  // Build once and reuse across all section renders
+  const childrenMap = buildChildrenMap(displayTasks)
 
   const sectionMap = new Map<string | null, Task[]>()
   sectionMap.set(null, [])
@@ -205,16 +167,7 @@ function buildTaskLines(
     if (rootTasks.length === 0) continue
     lines.push(`${hPrefix}${section.name}`)
     lines.push('')
-    lines.push(
-      ...renderTaskList(
-        rootTasks,
-        displayTasks,
-        isCompleted,
-        deepLinks,
-        showVisibleMeta,
-        showDescription,
-      ),
-    )
+    lines.push(...renderTaskList(rootTasks, childrenMap, isCompleted, options))
     lines.push('')
   }
 
@@ -222,16 +175,7 @@ function buildTaskLines(
   if (unsectioned.length > 0) {
     lines.push(`${hPrefix}Inbox`)
     lines.push('')
-    lines.push(
-      ...renderTaskList(
-        unsectioned,
-        displayTasks,
-        isCompleted,
-        deepLinks,
-        showVisibleMeta,
-        showDescription,
-      ),
-    )
+    lines.push(...renderTaskList(unsectioned, childrenMap, isCompleted, options))
     lines.push('')
   }
 
@@ -241,6 +185,12 @@ function buildTaskLines(
   }
 
   return lines
+}
+
+export interface RenderOptions {
+  taskDeepLinks: boolean
+  showVisibleMeta: boolean
+  showDescription: boolean
 }
 
 export interface RenderResult {
@@ -254,9 +204,7 @@ export function renderProject(
   tasks: Task[],
   completedMode: CompletedMode,
   fm: FrontmatterSettings,
-  taskDeepLinks: boolean,
-  showVisibleMeta: boolean,
-  showDescription: boolean,
+  options: RenderOptions,
 ): RenderResult {
   const activeTasks = tasks.filter((t) => t.completedAt === null)
   const completedTasks = tasks.filter((t) => t.completedAt !== null)
@@ -267,57 +215,22 @@ export function renderProject(
   let archiveContent: string | null = null
 
   if (completedMode === 'hide') {
-    projectLines = buildTaskLines(
-      activeTasks,
-      sections,
-      taskDeepLinks,
-      showVisibleMeta,
-      showDescription,
-    )
+    projectLines = buildTaskLines(activeTasks, sections, options)
   } else if (completedMode === 'inline') {
-    projectLines = buildTaskLines(tasks, sections, taskDeepLinks, showVisibleMeta, showDescription)
+    projectLines = buildTaskLines(tasks, sections, options)
   } else if (completedMode === 'archive-section') {
-    projectLines = buildTaskLines(
-      activeTasks,
-      sections,
-      taskDeepLinks,
-      showVisibleMeta,
-      showDescription,
-      '_No active tasks._',
-    )
+    projectLines = buildTaskLines(activeTasks, sections, options, '_No active tasks._')
     if (completedTasks.length > 0) {
       projectLines.push('## Completed')
       projectLines.push('')
       projectLines.push(
-        ...buildTaskLines(
-          completedTasks,
-          sections,
-          taskDeepLinks,
-          showVisibleMeta,
-          showDescription,
-          '_No completed tasks._',
-          3,
-        ),
+        ...buildTaskLines(completedTasks, sections, options, '_No completed tasks._', 3),
       )
     }
   } else {
     // 'archive-file' | 'archive-folder'
-    projectLines = buildTaskLines(
-      activeTasks,
-      sections,
-      taskDeepLinks,
-      showVisibleMeta,
-      showDescription,
-    )
-    archiveContent = buildArchiveContent(
-      project,
-      sections,
-      completedTasks,
-      fm,
-      taskDeepLinks,
-      showVisibleMeta,
-      showDescription,
-    )
+    projectLines = buildTaskLines(activeTasks, sections, options)
+    archiveContent = buildArchiveContent(project, sections, completedTasks, fm, options)
   }
 
   return {
@@ -331,20 +244,9 @@ function buildArchiveContent(
   sections: Section[],
   completedTasks: Task[],
   fm: FrontmatterSettings,
-  taskDeepLinks: boolean,
-  showVisibleMeta: boolean,
-  showDescription: boolean,
+  options: RenderOptions,
 ): string {
   const lines = [renderFrontmatter(project, fm, true), '', `# ${project.name}`, '']
-  lines.push(
-    ...buildTaskLines(
-      completedTasks,
-      sections,
-      taskDeepLinks,
-      showVisibleMeta,
-      showDescription,
-      '_No completed tasks._',
-    ),
-  )
+  lines.push(...buildTaskLines(completedTasks, sections, options, '_No completed tasks._'))
   return lines.join('\n')
 }

@@ -77,7 +77,7 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 | Filename Prefix | _(empty)_ | Prepended to every synced filename, e.g. `📋 ` → `📋 Work.md` |
 | Filename Suffix | _(empty)_ | Appended before `.md`, e.g. ` tasks` → `Work tasks.md` |
 | Sync Interval | `15` min | Background polling interval (minimum 1) |
-| Project Filter | _(all)_ | Comma-separated project names to include; empty = all |
+| Project Filter | _(all)_ | Comma-separated project names or IDs to include; empty = all. Project IDs are stable across renames. |
 
 ### Output
 

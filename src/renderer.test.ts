@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { Section, Task } from '@doist/todoist-api-typescript'
 import type { AnyProject } from './api'
 import type { FrontmatterSettings } from './settings'
+import type { RenderOptions } from './renderer'
 import { renderProject } from './renderer'
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
@@ -94,15 +95,18 @@ function render(
     showDescription?: boolean
   },
 ) {
+  const options: RenderOptions = {
+    taskDeepLinks: opts?.deepLinks ?? false,
+    showVisibleMeta: opts?.showVisibleMeta ?? true,
+    showDescription: opts?.showDescription ?? true,
+  }
   return renderProject(
     project,
     opts?.sections ?? [],
     tasks,
     opts?.completedMode ?? 'hide',
     opts?.fm ?? defaultFm,
-    opts?.deepLinks ?? false,
-    opts?.showVisibleMeta ?? true,
-    opts?.showDescription ?? true,
+    options,
   )
 }
 

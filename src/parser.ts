@@ -6,13 +6,13 @@ export function parseTaskStates(content: string): Map<string, boolean> {
   const result = new Map<string, boolean>()
 
   // Match lines like:   - [ ] Task content <!-- id:abc123 ... -->  (any indent)
-  const lineRe = /^\s*- \[([ xX])\] .+<!-- id:(\S+)/gm
+  // [^\s>]+ stops at whitespace or '>' so id:abc123--> (no space) won't capture the '-->'
+  const lineRe = /^\s*- \[([ xX])\] .+<!-- id:([^\s>]+)/gm
   let match: RegExpExecArray | null
 
   while ((match = lineRe.exec(content)) !== null) {
     const checked = match[1] !== ' '
-    const id = match[2].replace(/\s.*$/, '') // strip anything after whitespace in id
-    result.set(id, checked)
+    result.set(match[2], checked)
   }
 
   return result
