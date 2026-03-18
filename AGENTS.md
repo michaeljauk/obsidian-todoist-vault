@@ -64,9 +64,7 @@ Wraps `@doist/todoist-api-typescript` with an **Obsidian-compatible fetch adapte
 
 Obsidian's security sandbox blocks the browser's native `fetch` from reaching external URLs. The `obsidianFetch` adapter uses `requestUrl` (Obsidian's allowed HTTP method) to proxy all SDK requests. All methods use cursor-based pagination and collect all pages before returning.
 
-Methods: `getProjects()`, `getSections(projectId)`, `getTasks(projectId)`, `getCompletedTasks(projectId)`, `closeTask(taskId)`, `reopenTask(taskId)`.
-
-**Important:** `getTasks` returns only **active** (non-completed) tasks. Completed tasks require a separate call to `getCompletedTasks`, which wraps `getCompletedTasksByCompletionDate` with a full-history date range (`since: 2007-01-01`, `until: now`). `sync.ts` calls both in parallel when `completedMode !== 'hide'` and merges the results before rendering.
+Methods: `getProjects()`, `getSections(projectId)`, `getTasks(projectId)`, `closeTask(taskId)`, `reopenTask(taskId)`.
 
 ### `parser.ts`
 
@@ -80,36 +78,21 @@ Matches any checkbox line (`- [ ]` or `- [x]`) that has a `<!-- id:... -->` comm
 
 ### `renderer.ts`
 
-Pure module — no side effects, no Obsidian API imports. Takes project data and returns a `RenderResult`:
-
-```ts
-export interface RenderResult {
-  projectContent: string       // always present — the main project file content
-  archiveContent: string | null // non-null only for 'archive-file' and 'archive-folder' modes
-}
-```
-
-`renderProject()` partitions tasks into `activeTasks` and `completedTasks`, then builds content according to `completedMode`. For `archive-section` mode, completed tasks are appended under a `## Completed` heading (with `###` sub-headings for sections). For `archive-file`/`archive-folder` modes, the archive content is built by the private `buildArchiveContent()` helper (same frontmatter including `todoist_project_id`, plus a completed-tasks-only view).
+Pure module — no side effects, no Obsidian API imports. Takes project data and returns a markdown string as a checkbox list with optional badge lines and description callout blocks.
 
 ### `sync.ts`
 
 Exports `runSync(app, settings, syncState): Promise<SyncState>`. `SyncState` holds the set of task IDs that were completed at the end of the previous sync; it is persisted in plugin data by `main.ts` and threaded through every sync cycle to detect real user-driven checkbox changes vs. stale state.
 
 Orchestrates one full sync cycle:
-1. Ensure sync folder exists; for `archive-folder` mode also ensure the archive subfolder exists
-2. Fetch all projects, apply `projectFilter`
-3. For each project, fetch sections and tasks in parallel (`Promise.all`)
-4. If `bidirectionalSync`: read existing file, parse states, compare against `syncState` to close/reopen only genuinely user-changed tasks (reopen only when `completedMode !== 'hide'`)
-5. Render project via `renderProject()` → `RenderResult`
-6. Write main project file (create or modify)
-7. If `result.archiveContent !== null`, write the archive file (create or modify) at the archive path
-8. Return updated `SyncState` (completed task IDs after bidirectional resolution)
+1. Fetch all projects, apply `projectFilter`
+2. For each project, fetch sections and tasks in parallel (`Promise.all`)
+3. If `bidirectionalSync`: read existing file, parse states, compare against `syncState` to close/reopen only genuinely user-changed tasks
+4. Render project to string via `renderProject()`
+5. Write file (create or modify)
+6. Return updated `SyncState` (completed task IDs after bidirectional resolution)
 
-**Archive path logic:**
-- `archive-file`: `{syncFolder}/{filePrefix}{projectName}{archiveFileSuffix}.md`
-- `archive-folder`: `{syncFolder}/{archiveFolder}/{filePrefix}{projectName}{fileSuffix}.md`
-
-File identity uses `todoist_project_id` from frontmatter. The shared `findAndMoveFileByProjectId()` helper scans a folder for a file with matching frontmatter and renames it to the target path. For `archive-file` mode, the main file path is passed as `excludePath` to avoid matching the main file when scanning for the archive file (both share the same `todoist_project_id`).
+File identity uses `todoist_project_id` from frontmatter — if `filePrefix`/`fileSuffix` changed, scans the folder for a file with matching frontmatter and renames it rather than creating a duplicate.
 
 ---
 
@@ -173,9 +156,7 @@ Defined in `settings.ts`. **When adding a new setting, update all three places i
 | `syncFolder` | string | `'tasks'` |
 | `syncIntervalMinutes` | number | `15` |
 | `projectFilter` | string[] | `[]` |
-| `completedMode` | `CompletedMode` | `'hide'` |
-| `archiveFileSuffix` | string | `' Archive'` |
-| `archiveFolder` | string | `'archive'` |
+| `includeCompleted` | boolean | `false` |
 | `bidirectionalSync` | boolean | `false` |
 | `taskDeepLinks` | boolean | `false` |
 | `showVisibleMeta` | boolean | `true` |
@@ -183,10 +164,6 @@ Defined in `settings.ts`. **When adding a new setting, update all three places i
 | `filePrefix` | string | `''` |
 | `fileSuffix` | string | `''` |
 | `frontmatter` | FrontmatterSettings | see code |
-
-`CompletedMode` values: `'hide'` · `'inline'` · `'archive-section'` · `'archive-file'` · `'archive-folder'`
-
-**Migration:** users upgrading from v1.x (which had `includeCompleted: boolean`) are automatically migrated on first load — `true` → `'inline'`, `false` → `'hide'`.
 
 `FrontmatterSettings` sub-object: `includeUrl`, `includeColor`, `includeTags`, `includeIsFavorite`, `includeIsShared`, `customFields`.
 
@@ -304,5 +281,3 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-16 | Removed table layout; updated commit convention to require scopes |
 | 2026-03-17 | Updated sync.ts section to document SyncState parameter/return value (added in 1.0.3) |
 | 2026-03-17 | Fixed README version badge (1.0.1 → 1.0.3); fixed contributing.md plugin folder path (obsidian-todoist-vault → todoist-vault-sync) |
-| 2026-03-18 | Replaced `includeCompleted` with `completedMode` (5 options); added archive file/folder/section support; updated renderer.ts and sync.ts sections |
-| 2026-03-18 | Fixed completed task fetching: `getTasks` returns active tasks only; added `getCompletedTasks` using `getCompletedTasksByCompletionDate` API |

@@ -6,7 +6,7 @@ import type { SyncState } from './sync'
 
 export default class TodoistVaultPlugin extends Plugin {
   settings!: TodoistVaultSettings
-  private syncState: SyncState = { completedTaskIds: [], lastCompletedFetchAt: null, completedTasksCache: {} }
+  private syncState: SyncState = { completedTaskIds: [] }
   private syncIntervalId: number | null = null
   private isSyncing = false
 
@@ -78,17 +78,7 @@ export default class TodoistVaultPlugin extends Plugin {
     const data = (await this.loadData()) ?? {}
     this.settings = Object.assign({}, DEFAULT_SETTINGS, data)
     if (data._syncState) {
-      const saved = data._syncState as Partial<SyncState>
-      this.syncState = {
-        completedTaskIds: saved.completedTaskIds ?? [],
-        lastCompletedFetchAt: saved.lastCompletedFetchAt ?? null,
-        completedTasksCache: saved.completedTasksCache ?? {},
-      }
-    }
-    // Migration: v1.x users have includeCompleted boolean, not completedMode
-    if (!this.settings.completedMode) {
-      const legacy = (data as { includeCompleted?: boolean }).includeCompleted
-      this.settings.completedMode = legacy === true ? 'inline' : 'hide'
+      this.syncState = data._syncState as SyncState
     }
   }
 

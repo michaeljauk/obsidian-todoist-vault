@@ -22,7 +22,7 @@ const obsidianFetch: CustomFetch = async (url, options) => {
   return {
     ok: res.status >= 200 && res.status < 300,
     status: res.status,
-    statusText: res.text.slice(0, 200),
+    statusText: '',
     headers: res.headers,
     text: () => Promise.resolve(res.text),
     json: () => Promise.resolve(res.json as unknown),
@@ -69,19 +69,6 @@ export class TodoistClient {
     do {
       const page = await this.api.getTasks({ projectId, cursor })
       results.push(...page.results)
-      cursor = page.nextCursor ?? undefined
-    } while (cursor)
-
-    return results
-  }
-
-  async getCompletedTasks(projectId: string, since: string, until: string): Promise<Task[]> {
-    const results: Task[] = []
-    let cursor: string | undefined
-
-    do {
-      const page = await this.api.getCompletedTasksByCompletionDate({ projectId, since, until, cursor })
-      results.push(...page.items)
       cursor = page.nextCursor ?? undefined
     } while (cursor)
 
