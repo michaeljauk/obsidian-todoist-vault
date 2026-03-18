@@ -1,4 +1,4 @@
-import { App, TFile, TFolder, normalizePath } from 'obsidian'
+import { App, Notice, TFile, TFolder, normalizePath } from 'obsidian'
 import type { Task } from '@doist/todoist-api-typescript'
 import { TodoistClient } from './api'
 import { renderProject } from './renderer'
@@ -99,6 +99,10 @@ export async function runSync(
             newCompletedTasksCache[project.id] = completedTasks
           }
         } catch (err) {
+          const status = (err as { httpStatusCode?: number })?.httpStatusCode
+          if (status === 429) {
+            new Notice('Todoist rate limit hit — completed tasks skipped. Try again in a moment or reduce the lookback window.')
+          }
           console.warn(`[TodoistVault] Failed to fetch completed tasks for "${project.name}" — syncing active tasks only:`, err)
         }
       }
