@@ -24,12 +24,6 @@ export default class TodoistVaultPlugin extends Plugin {
 
     this.addSettingTab(new TodoistVaultSettingTab(this.app, this))
 
-    // Ensure sync folder exists
-    const folder = this.settings.syncFolder
-    if (folder && !this.app.vault.getFolderByPath(folder)) {
-      await this.app.vault.createFolder(folder)
-    }
-
     // Command: manual sync
     this.addCommand({
       id: 'sync-now',
