@@ -35,17 +35,25 @@ jobs:
           bun-version: '1.3.10'
       - run: bun install --frozen-lockfile
       - run: bun run build
+      - name: Extract release notes
+        run: |
+          VERSION="${{ github.ref_name }}"
+          awk "
+            /^## \[$VERSION\]/ { found=1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          " CHANGELOG.md > release_notes.md
+          echo "" >> release_notes.md
+          echo "---" >> release_notes.md
+          echo "**Manual installation:**" >> release_notes.md
+          echo "1. Download \`main.js\`, \`manifest.json\`, and \`styles.css\` below." >> release_notes.md
+          echo "2. Copy all three into \`<vault>/.obsidian/plugins/obsidian-todoist-vault/\`." >> release_notes.md
+          echo "3. Enable the plugin in **Settings → Community plugins**." >> release_notes.md
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body: |
-            See [CHANGELOG](https://github.com/michaeljauk/obsidian-todoist-vault/blob/main/CHANGELOG.md) for details.
-
-            **Manual installation:**
-            1. Download `main.js`, `manifest.json`, and `styles.css` below.
-            2. Copy all three into `<vault>/.obsidian/plugins/obsidian-todoist-vault/`.
-            3. Enable the plugin in **Settings → Community plugins**.
+          body_path: release_notes.md
           files: |
             main.js
             manifest.json
