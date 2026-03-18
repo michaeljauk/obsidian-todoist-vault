@@ -44,8 +44,27 @@ export default class TodoistVaultPlugin extends Plugin {
       },
     })
 
-    // Status bar indicator
+    // Ribbon icon — click to sync immediately
+    this.addRibbonIcon('refresh-cw', 'Todoist: sync now', async () => {
+      new Notice('Syncing…')
+      try {
+        await this.runSync()
+        new Notice('Sync complete')
+      } catch (err) {
+        console.error('Sync failed:', err)
+        new Notice('Sync failed — see console')
+      }
+    })
+
+    // Status bar indicator — also clickable to trigger sync
     this.statusBarItem = this.addStatusBarItem()
+    this.statusBarItem.addClass('todoist-vault-status-bar')
+    this.statusBarItem.title = 'Click to sync Todoist now'
+    this.statusBarItem.addEventListener('click', () => {
+      this.runSync().catch((err: unknown) => {
+        console.error('Manual sync failed:', err)
+      })
+    })
     this.updateStatusBar('idle')
     this.statusBarRefreshId = window.setInterval(() => {
       if (!this.isSyncing) this.updateStatusBar('idle')
