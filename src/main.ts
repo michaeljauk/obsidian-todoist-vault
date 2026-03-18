@@ -15,6 +15,7 @@ export default class TodoistVaultPlugin extends Plugin {
   private statusBarRefreshId: number | null = null
   private isSyncing = false
   private statusBarItem: HTMLElement | null = null
+  private statusBarMsg: HTMLElement | null = null
   private lastSyncedAt: Date | null = null
 
   async onload() {
@@ -56,11 +57,18 @@ export default class TodoistVaultPlugin extends Plugin {
       }
     })
 
-    // Status bar indicator — also clickable to trigger sync
+    // Status bar indicator — clickable to trigger sync
     this.statusBarItem = this.addStatusBarItem()
-    this.statusBarItem.addClass('todoist-vault-status-bar')
-    this.statusBarItem.setAttribute('aria-label', 'Sync Todoist now')
-    this.statusBarItem.addEventListener('click', () => {
+    const anchor = this.statusBarItem.createEl('a', {
+      cls: 'todoist-vault-status-bar',
+      attr: {
+        role: 'button',
+        'aria-label': 'Sync Todoist now',
+        tabindex: '0',
+      },
+    })
+    this.statusBarMsg = anchor
+    anchor.addEventListener('click', () => {
       this.runSync().catch((err: unknown) => {
         console.error('Manual sync failed:', err)
       })
@@ -104,18 +112,18 @@ export default class TodoistVaultPlugin extends Plugin {
   }
 
   private updateStatusBar(state: 'idle' | 'syncing' | 'error') {
-    if (!this.statusBarItem) return
+    if (!this.statusBarMsg) return
     if (state === 'syncing') {
-      this.statusBarItem.setText('↻ Todoist syncing…')
+      this.statusBarMsg.textContent = '↻ Todoist syncing…'
     } else if (state === 'error') {
-      this.statusBarItem.setText('✗ Todoist sync failed')
+      this.statusBarMsg.textContent = '✗ Todoist sync failed'
     } else {
       if (this.lastSyncedAt) {
         const mins = Math.round((Date.now() - this.lastSyncedAt.getTime()) / 60_000)
         const label = mins < 1 ? 'just now' : `${mins}m ago`
-        this.statusBarItem.setText(`✓ Todoist synced ${label}`)
+        this.statusBarMsg.textContent = `✓ Todoist synced ${label}`
       } else {
-        this.statusBarItem.setText('Todoist sync')
+        this.statusBarMsg.textContent = 'Todoist sync'
       }
     }
   }
