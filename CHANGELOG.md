@@ -2,6 +2,22 @@
 
 All notable changes to Todoist Vault Sync are documented here.
 
+## [1.2.0] — 2026-03-18
+
+### Added
+
+- **Status bar indicator** — shows sync status ("Todoist synced Xm ago", "Todoist syncing…", "Todoist sync failed") with a colored dot (green = idle, pulsing blue = syncing, red = error). Click to trigger a manual sync.
+- **Ribbon sync icon** — `refresh-cw` icon in the left ribbon for quick manual sync access.
+- **Project filter accepts IDs** — `projectFilter` now matches by project ID in addition to name, so filters survive project renames.
+
+### Internal
+
+- Extracted `RenderOptions` interface; unified `renderTask`/`renderTaskTree` into a single code path.
+- `buildChildrenMap` now called once per `buildTaskLines` rather than per task.
+- Incremental completed-task cache trimmed to the 2-year history cap to prevent unbounded `data.json` growth.
+- `parser.ts` regex hardened to require `<!-- id:` prefix, preventing false matches on other HTML comments.
+- Duplicate sync folder creation removed from `main.ts` (already handled in `sync.ts`).
+
 ## [1.1.0] — 2026-03-18
 
 ### Added
