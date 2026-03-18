@@ -1,7 +1,12 @@
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian'
 import type TodoistVaultPlugin from './main'
 
-export type CompletedMode = 'hide' | 'inline' | 'archive-section' | 'archive-file' | 'archive-folder'
+export type CompletedMode =
+  | 'hide'
+  | 'inline'
+  | 'archive-section'
+  | 'archive-file'
+  | 'archive-folder'
 export type CompletedFetchMode = 'lookback' | 'incremental' | 'all'
 
 export interface FrontmatterSettings {
@@ -86,7 +91,9 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
             text: 'Todoist → settings → integrations',
             href: 'https://app.todoist.com/app/settings/integrations/developer',
           })
-          f.appendText('. Stored unencrypted in your vault\'s plugin data — protect your vault accordingly.')
+          f.appendText(
+            ". Stored unencrypted in your vault's plugin data — protect your vault accordingly.",
+          )
         }),
       )
       .addText((text) =>
@@ -117,7 +124,9 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Filename prefix')
-      .setDesc('Prepended to every synced project filename (e.g. "📋 "). Useful to avoid name collisions with project hub notes.')
+      .setDesc(
+        'Prepended to every synced project filename (e.g. "📋 "). Useful to avoid name collisions with project hub notes.',
+      )
       .addText((text) =>
         text
           .setPlaceholder('📋 ')
@@ -130,7 +139,9 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Filename suffix')
-      .setDesc('Appended to every synced project filename before the .md extension (e.g. " tasks").')
+      .setDesc(
+        'Appended to every synced project filename before the .md extension (e.g. " tasks").',
+      )
       .addText((text) =>
         text
           .setPlaceholder(' Tasks')
@@ -238,7 +249,9 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Completed tasks history')
-      .setDesc('How far back completed tasks are fetched from Todoist. Only applies when completed tasks are visible. Note: fetching large histories across many projects can trigger Todoist API rate limits.')
+      .setDesc(
+        'How far back completed tasks are fetched from Todoist. Only applies when completed tasks are visible. Note: fetching large histories across many projects can trigger Todoist API rate limits.',
+      )
       .addDropdown((drop) =>
         drop
           .addOption('lookback', 'Recent window (lookback days)')
@@ -254,7 +267,9 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
 
     lookbackDaysSetting = new Setting(containerEl)
       .setName('Lookback window')
-      .setDesc('Number of days to look back when fetching completed tasks (max 89 — Todoist API limit). Also used as the bootstrap window for incremental mode.')
+      .setDesc(
+        'Number of days to look back when fetching completed tasks (max 89 — Todoist API limit). Also used as the bootstrap window for incremental mode.',
+      )
       .addText((text) =>
         text
           .setPlaceholder('30')
@@ -329,24 +344,20 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
       .setName('Include project color')
       .setDesc('Include the project color in frontmatter.')
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.frontmatter.includeColor)
-          .onChange(async (value) => {
-            this.plugin.settings.frontmatter.includeColor = value
-            await this.plugin.saveSettings()
-          }),
+        toggle.setValue(this.plugin.settings.frontmatter.includeColor).onChange(async (value) => {
+          this.plugin.settings.frontmatter.includeColor = value
+          await this.plugin.saveSettings()
+        }),
       )
 
     new Setting(containerEl)
       .setName('Include tags')
       .setDesc('Include a tags array in frontmatter.')
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.frontmatter.includeTags)
-          .onChange(async (value) => {
-            this.plugin.settings.frontmatter.includeTags = value
-            await this.plugin.saveSettings()
-          }),
+        toggle.setValue(this.plugin.settings.frontmatter.includeTags).onChange(async (value) => {
+          this.plugin.settings.frontmatter.includeTags = value
+          await this.plugin.saveSettings()
+        }),
       )
 
     new Setting(containerEl)

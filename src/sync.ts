@@ -22,7 +22,11 @@ export interface SyncState {
 export async function runSync(
   app: App,
   settings: TodoistVaultSettings,
-  syncState: SyncState = { completedTaskIds: [], lastCompletedFetchAt: null, completedTasksCache: {} },
+  syncState: SyncState = {
+    completedTaskIds: [],
+    lastCompletedFetchAt: null,
+    completedTasksCache: {},
+  },
 ): Promise<SyncState> {
   if (!settings.apiToken) {
     console.warn('[TodoistVault] No API token configured — skipping sync')
@@ -64,7 +68,9 @@ export async function runSync(
   const writtenPaths = new Set<string>()
   const now = toApiDate(Date.now())
   // Seed with existing cache so projects not in this sync run don't lose their history
-  const newCompletedTasksCache: Record<string, Task[]> = { ...(syncState.completedTasksCache ?? {}) }
+  const newCompletedTasksCache: Record<string, Task[]> = {
+    ...(syncState.completedTasksCache ?? {}),
+  }
 
   for (const project of filtered) {
     try {
@@ -90,7 +96,10 @@ export async function runSync(
             // incremental: fetch delta since last sync, merge with cached tasks
             const since =
               syncState.lastCompletedFetchAt ??
-              toApiDate(Date.now() - Math.min(settings.completedLookbackDays, MAX_COMPLETED_WINDOW_DAYS) * 86_400_000)
+              toApiDate(
+                Date.now() -
+                  Math.min(settings.completedLookbackDays, MAX_COMPLETED_WINDOW_DAYS) * 86_400_000,
+              )
             const delta = await client.getCompletedTasks(project.id, since, now)
             const cached = syncState.completedTasksCache[project.id] ?? []
             const taskMap = new Map(cached.map((t) => [t.id, t]))
@@ -101,9 +110,14 @@ export async function runSync(
         } catch (err) {
           const status = (err as { httpStatusCode?: number })?.httpStatusCode
           if (status === 429) {
-            new Notice('Todoist rate limit hit — completed tasks skipped. Try again in a moment or reduce the lookback window.')
+            new Notice(
+              'Todoist rate limit hit — completed tasks skipped. Try again in a moment or reduce the lookback window.',
+            )
           }
-          console.warn(`[TodoistVault] Failed to fetch completed tasks for "${project.name}" — syncing active tasks only:`, err)
+          console.warn(
+            `[TodoistVault] Failed to fetch completed tasks for "${project.name}" — syncing active tasks only:`,
+            err,
+          )
         }
       }
 
@@ -144,7 +158,12 @@ export async function runSync(
           // Only possible when completed tasks are visible (otherwise [x] tasks aren't in the file).
           // The `wasCompletedLastSync` guard ensures we don't reopen a task that was just
           // completed externally in Todoist before Obsidian had a chance to render it as [x].
-          if (!todoistOpen && localChecked === false && wasCompletedLastSync && settings.completedMode !== 'hide') {
+          if (
+            !todoistOpen &&
+            localChecked === false &&
+            wasCompletedLastSync &&
+            settings.completedMode !== 'hide'
+          ) {
             try {
               await client.reopenTask(task.id)
               ;(task as { completedAt: string | null }).completedAt = null
@@ -189,7 +208,13 @@ export async function runSync(
             settings.completedMode === 'archive-folder'
               ? normalizePath(`${folderPath}/${settings.archiveFolder}`)
               : folderPath
-          archiveFile = await findAndMoveFileByProjectId(app, archiveScanFolder, project.id, archivePath, filePath)
+          archiveFile = await findAndMoveFileByProjectId(
+            app,
+            archiveScanFolder,
+            project.id,
+            archivePath,
+            filePath,
+          )
         }
         if (archiveFile instanceof TFile) {
           await app.vault.modify(archiveFile, result.archiveContent)
@@ -207,9 +232,13 @@ export async function runSync(
 
   return {
     completedTaskIds: newCompletedTaskIds,
-    lastCompletedFetchAt: settings.completedMode !== 'hide' && settings.completedFetchMode === 'incremental' ? now : null,
+    lastCompletedFetchAt:
+      settings.completedMode !== 'hide' && settings.completedFetchMode === 'incremental'
+        ? now
+        : null,
     // Clear cache when not in incremental mode so stale data doesn't accumulate in data.json
-    completedTasksCache: settings.completedFetchMode === 'incremental' ? newCompletedTasksCache : {},
+    completedTasksCache:
+      settings.completedFetchMode === 'incremental' ? newCompletedTasksCache : {},
   }
 }
 
@@ -220,10 +249,14 @@ function getArchivePath(
 ): string {
   const base = sanitizeFilename(projectName)
   if (settings.completedMode === 'archive-file') {
-    return normalizePath(`${folderPath}/${settings.filePrefix}${base}${settings.archiveFileSuffix}.md`)
+    return normalizePath(
+      `${folderPath}/${settings.filePrefix}${base}${settings.archiveFileSuffix}.md`,
+    )
   }
   // 'archive-folder'
-  return normalizePath(`${folderPath}/${settings.archiveFolder}/${settings.filePrefix}${base}${settings.fileSuffix}.md`)
+  return normalizePath(
+    `${folderPath}/${settings.archiveFolder}/${settings.filePrefix}${base}${settings.fileSuffix}.md`,
+  )
 }
 
 /**
@@ -319,7 +352,11 @@ async function fetchCompletedChunked(
 
   while (chunkUntilMs > oldestMs) {
     const chunkSinceMs = Math.max(oldestMs, chunkUntilMs - MAX_COMPLETED_WINDOW_DAYS * 86_400_000)
-    const chunk = await client.getCompletedTasks(projectId, toApiDate(chunkSinceMs), toApiDate(chunkUntilMs))
+    const chunk = await client.getCompletedTasks(
+      projectId,
+      toApiDate(chunkSinceMs),
+      toApiDate(chunkUntilMs),
+    )
     results.push(...chunk)
     if (chunk.length === 0) break // no tasks in window — nothing older
     chunkUntilMs = chunkSinceMs

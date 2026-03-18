@@ -80,7 +80,12 @@ export class TodoistClient {
     let cursor: string | undefined
 
     do {
-      const page = await this.api.getCompletedTasksByCompletionDate({ projectId, since, until, cursor })
+      const page = await this.api.getCompletedTasksByCompletionDate({
+        projectId,
+        since,
+        until,
+        cursor,
+      })
       results.push(...page.items)
       cursor = page.nextCursor ?? undefined
     } while (cursor)

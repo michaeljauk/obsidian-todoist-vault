@@ -4,7 +4,20 @@ import type { CompletedMode, FrontmatterSettings } from './settings'
 
 function formatDueDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ]
   const now = new Date()
   if (y === now.getFullYear()) return `${months[m - 1]} ${d}`
   return `${months[m - 1]} ${d}, ${y}`
@@ -88,7 +101,16 @@ function renderTaskTree(
         lines.push(line.trim() ? `${descIndent}> ${line}` : `${descIndent}>`)
       }
     }
-    renderTaskTree(task.id, childrenMap, isCompleted, indent + 1, lines, deepLinks, showVisibleMeta, showDescription)
+    renderTaskTree(
+      task.id,
+      childrenMap,
+      isCompleted,
+      indent + 1,
+      lines,
+      deepLinks,
+      showVisibleMeta,
+      showDescription,
+    )
   }
 }
 
@@ -130,7 +152,16 @@ function renderTaskList(
         lines.push(line.trim() ? `  > ${line}` : `  >`)
       }
     }
-    renderTaskTree(task.id, childrenMap, isCompleted, 1, lines, deepLinks, showVisibleMeta, showDescription)
+    renderTaskTree(
+      task.id,
+      childrenMap,
+      isCompleted,
+      1,
+      lines,
+      deepLinks,
+      showVisibleMeta,
+      showDescription,
+    )
     if (i < rootTasks.length - 1) lines.push('')
   }
   return lines
@@ -174,7 +205,16 @@ function buildTaskLines(
     if (rootTasks.length === 0) continue
     lines.push(`${hPrefix}${section.name}`)
     lines.push('')
-    lines.push(...renderTaskList(rootTasks, displayTasks, isCompleted, deepLinks, showVisibleMeta, showDescription))
+    lines.push(
+      ...renderTaskList(
+        rootTasks,
+        displayTasks,
+        isCompleted,
+        deepLinks,
+        showVisibleMeta,
+        showDescription,
+      ),
+    )
     lines.push('')
   }
 
@@ -182,7 +222,16 @@ function buildTaskLines(
   if (unsectioned.length > 0) {
     lines.push(`${hPrefix}Inbox`)
     lines.push('')
-    lines.push(...renderTaskList(unsectioned, displayTasks, isCompleted, deepLinks, showVisibleMeta, showDescription))
+    lines.push(
+      ...renderTaskList(
+        unsectioned,
+        displayTasks,
+        isCompleted,
+        deepLinks,
+        showVisibleMeta,
+        showDescription,
+      ),
+    )
     lines.push('')
   }
 
@@ -218,22 +267,57 @@ export function renderProject(
   let archiveContent: string | null = null
 
   if (completedMode === 'hide') {
-    projectLines = buildTaskLines(activeTasks, sections, taskDeepLinks, showVisibleMeta, showDescription)
+    projectLines = buildTaskLines(
+      activeTasks,
+      sections,
+      taskDeepLinks,
+      showVisibleMeta,
+      showDescription,
+    )
   } else if (completedMode === 'inline') {
     projectLines = buildTaskLines(tasks, sections, taskDeepLinks, showVisibleMeta, showDescription)
   } else if (completedMode === 'archive-section') {
-    projectLines = buildTaskLines(activeTasks, sections, taskDeepLinks, showVisibleMeta, showDescription, '_No active tasks._')
+    projectLines = buildTaskLines(
+      activeTasks,
+      sections,
+      taskDeepLinks,
+      showVisibleMeta,
+      showDescription,
+      '_No active tasks._',
+    )
     if (completedTasks.length > 0) {
       projectLines.push('## Completed')
       projectLines.push('')
       projectLines.push(
-        ...buildTaskLines(completedTasks, sections, taskDeepLinks, showVisibleMeta, showDescription, '_No completed tasks._', 3),
+        ...buildTaskLines(
+          completedTasks,
+          sections,
+          taskDeepLinks,
+          showVisibleMeta,
+          showDescription,
+          '_No completed tasks._',
+          3,
+        ),
       )
     }
   } else {
     // 'archive-file' | 'archive-folder'
-    projectLines = buildTaskLines(activeTasks, sections, taskDeepLinks, showVisibleMeta, showDescription)
-    archiveContent = buildArchiveContent(project, sections, completedTasks, fm, taskDeepLinks, showVisibleMeta, showDescription)
+    projectLines = buildTaskLines(
+      activeTasks,
+      sections,
+      taskDeepLinks,
+      showVisibleMeta,
+      showDescription,
+    )
+    archiveContent = buildArchiveContent(
+      project,
+      sections,
+      completedTasks,
+      fm,
+      taskDeepLinks,
+      showVisibleMeta,
+      showDescription,
+    )
   }
 
   return {
@@ -252,6 +336,15 @@ function buildArchiveContent(
   showDescription: boolean,
 ): string {
   const lines = [renderFrontmatter(project, fm, true), '', `# ${project.name}`, '']
-  lines.push(...buildTaskLines(completedTasks, sections, taskDeepLinks, showVisibleMeta, showDescription, '_No completed tasks._'))
+  lines.push(
+    ...buildTaskLines(
+      completedTasks,
+      sections,
+      taskDeepLinks,
+      showVisibleMeta,
+      showDescription,
+      '_No completed tasks._',
+    ),
+  )
   return lines.join('\n')
 }

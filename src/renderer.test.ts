@@ -261,7 +261,13 @@ describe('task inline comment', () => {
     const task = makeTask({
       id: 't1',
       content: 'Task',
-      due: { date: '2026-04-01', isRecurring: true, string: 'every day', lang: 'en', timezone: null },
+      due: {
+        date: '2026-04-01',
+        isRecurring: true,
+        string: 'every day',
+        lang: 'en',
+        timezone: null,
+      },
     })
     const { projectContent } = render([task])
     expect(projectContent).toContain('recur:every day')

@@ -6,7 +6,11 @@ import type { SyncState } from './sync'
 
 export default class TodoistVaultPlugin extends Plugin {
   settings!: TodoistVaultSettings
-  private syncState: SyncState = { completedTaskIds: [], lastCompletedFetchAt: null, completedTasksCache: {} }
+  private syncState: SyncState = {
+    completedTaskIds: [],
+    lastCompletedFetchAt: null,
+    completedTasksCache: {},
+  }
   private syncIntervalId: number | null = null
   private isSyncing = false
 

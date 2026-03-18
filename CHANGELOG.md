@@ -2,6 +2,25 @@
 
 All notable changes to Todoist Vault Sync are documented here.
 
+## [1.1.0] — 2026-03-18
+
+### Added
+
+- **Completed task archiving** — configurable `completedMode` setting with five options: `hide`, `inline`, `archive-section`, `archive-file`, and `archive-folder`. Switching modes automatically cleans up previously written archive files.
+- **Configurable fetch strategy** — `completedFetchMode` setting: `lookback` (N days back), `incremental` (delta since last sync, cached per project), or `all` (full history in 3-month chunks).
+- **Rate limit notice** — an Obsidian notice is shown when the Todoist API returns HTTP 429 during a completed task fetch; active tasks continue to sync normally.
+
+### Fixed
+
+- Completed task fetching now correctly uses the `getCompletedTasksByCompletionDate` endpoint (`getTasks` only returns active tasks).
+- Long date ranges (> 3 months) are automatically chunked to stay within the Todoist API window limit.
+
+### Internal
+
+- Added `bun test` unit tests for `renderer.ts` covering all `completedMode` variants, frontmatter, task formatting, sections, and descriptions.
+- CI now runs `format:check` and `bun test` in addition to typecheck and lint.
+- Release workflow is gated on passing the full check suite.
+
 ## [1.0.3] — 2026-03-17
 
 ### Fixed
