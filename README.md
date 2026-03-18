@@ -159,11 +159,11 @@ Todoist's API uses an inverted priority scale (4 = highest). The plugin converts
 
 ## ↔️ Bidirectional Sync
 
-Enable **Bidirectional sync** in settings. On the next sync cycle, any task you check in Obsidian will be closed in Todoist, and any task you uncheck (when "Show completed tasks" is on) will be reopened.
+Enable **Bidirectional sync** in settings. On the next sync cycle, any task you check in Obsidian will be closed in Todoist, and any task you uncheck (when **Completed tasks** mode is not `hide`) will be reopened.
 
 > **Note:** Only checkbox state is synced back to Todoist. Task content, due dates, and priorities are not written back — Todoist is the source of truth for task content.
 >
-> **Note:** Reopening a task by unchecking it only works when **Show completed tasks** is enabled — otherwise completed tasks aren't present in the file.
+> **Note:** Reopening a task by unchecking it only works when **Completed tasks** mode is not `hide` — otherwise completed tasks aren't present in the file.
 
 ---
 

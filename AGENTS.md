@@ -112,7 +112,8 @@ Orchestrates one full sync cycle:
 6. Render project via `renderProject()` → `RenderResult`
 7. Write main project file (create or modify)
 8. If `result.archiveContent !== null`, write the archive file (create or modify) at the archive path
-9. Return updated `SyncState`
+9. After all projects: call `cleanupOrphanedArchiveFiles()` — scans the sync folder and all immediate subfolders for files with `todoist_is_archive: true` frontmatter that were **not** written in this sync cycle and trashes them. Also removes empty subfolders left behind.
+10. Return updated `SyncState`
 
 **Archive path logic:**
 - `archive-file`: `{syncFolder}/{filePrefix}{projectName}{archiveFileSuffix}.md`
@@ -127,6 +128,7 @@ File identity uses `todoist_project_id` from frontmatter. The shared `findAndMov
 ```markdown
 ---
 todoist_project_id: "123456"
+todoist_is_archive: true                                 ← archive files only (used by cleanup logic)
 todoist_url: "https://todoist.com/app/project/123456"   ← optional (includeUrl)
 todoist_color: "blue"                                    ← optional (includeColor)
 tags:                                                    ← optional (includeTags)
@@ -293,6 +295,7 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 - `app.vault.create(path, content)` — create new file
 - `app.metadataCache.getFileCache(file)` — access frontmatter
 - `app.fileManager.renameFile(file, newPath)` — rename/move file
+- `app.fileManager.trashFile(file)` — move file (or empty folder) to system trash; used by `cleanupOrphanedArchiveFiles`
 - `this.addStatusBarItem()` — creates a status bar element (bottom right); returns `HTMLElement`
 - `this.addRibbonIcon(icon, title, callback)` — adds a ribbon icon (left sidebar)
 - `window.setInterval` / `window.clearInterval` — used directly (not `this.registerInterval`) so the plugin can track the ID and clear it manually in `onunload()`
@@ -325,3 +328,4 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-18 | Added `bun test` unit tests for `renderer.ts` (29 tests); added `test` script to package.json |
 | 2026-03-18 | Added GitHub PR template; updated contributing.md and README.md to reflect completedMode enum and bun test |
 | 2026-03-18 | Added status bar indicator (clickable, status dot, hover state), ribbon sync icon, styles.css; updated Obsidian API patterns, architecture tree, release workflow |
+| 2026-03-18 | Full sweep: added cleanupOrphanedArchiveFiles step to sync.ts section; added todoist_is_archive to file format spec; added trashFile to Obsidian API patterns; fixed README bidirectional sync outdated "Show completed tasks" terminology |
