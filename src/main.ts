@@ -58,7 +58,7 @@ export default class TodoistVaultPlugin extends Plugin {
       cls: 'todoist-vault-status-bar',
       attr: {
         role: 'button',
-        'aria-label': 'Sync Todoist now',
+        'aria-label': 'Sync now',
         tabindex: '0',
       },
     })

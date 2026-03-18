@@ -252,7 +252,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Completed tasks history')
       .setDesc(
-        'How far back completed tasks are fetched from Todoist. Only applies when completed tasks are visible. Note: fetching large histories across many projects can trigger Todoist API rate limits.',
+        'How far back completed tasks are fetched from the API. Only applies when completed tasks are visible. Note: fetching large histories across many projects can trigger API rate limits.',
       )
       .addDropdown((drop) =>
         drop
@@ -270,7 +270,7 @@ export class TodoistVaultSettingTab extends PluginSettingTab {
     lookbackDaysSetting = new Setting(containerEl)
       .setName('Lookback window')
       .setDesc(
-        'Number of days to look back when fetching completed tasks (max 89 — Todoist API limit). Also used as the bootstrap window for incremental mode.',
+        'Number of days to look back when fetching completed tasks (max 89 — API limit). Also used as the bootstrap window for incremental mode.',
       )
       .addText((text) =>
         text
