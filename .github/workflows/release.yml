@@ -43,9 +43,10 @@ jobs:
             See [CHANGELOG](https://github.com/michaeljauk/obsidian-todoist-vault/blob/main/CHANGELOG.md) for details.
 
             **Manual installation:**
-            1. Download `main.js` and `manifest.json` below.
-            2. Copy both into `<vault>/.obsidian/plugins/obsidian-todoist-vault/`.
+            1. Download `main.js`, `manifest.json`, and `styles.css` below.
+            2. Copy all three into `<vault>/.obsidian/plugins/obsidian-todoist-vault/`.
             3. Enable the plugin in **Settings → Community plugins**.
           files: |
             main.js
             manifest.json
+            styles.css

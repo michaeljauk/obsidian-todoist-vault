@@ -22,12 +22,13 @@ An **Obsidian community plugin** (not a web app, not a monorepo) that pulls Todo
 
 ```
 src/
-├── main.ts       Plugin entry point — lifecycle, command registration, interval scheduling
+├── main.ts       Plugin entry point — lifecycle, commands, ribbon icon, status bar, intervals
 ├── api.ts        Obsidian-compatible Todoist REST client (custom fetch adapter + pagination)
 ├── settings.ts   TodoistVaultSettings interface + DEFAULT_SETTINGS + PluginSettingTab UI
 ├── sync.ts       Orchestrator — fetches data, runs bidirectional sync, calls renderer, writes files
 ├── renderer.ts   Pure functions: project data → markdown string
 └── parser.ts     Parses existing file content to extract task checkbox states for bidirectional sync
+styles.css        Status bar hover state, status dot colors, pulse animation
 ```
 
 ### Data Flow
@@ -292,6 +293,8 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 - `app.vault.create(path, content)` — create new file
 - `app.metadataCache.getFileCache(file)` — access frontmatter
 - `app.fileManager.renameFile(file, newPath)` — rename/move file
+- `this.addStatusBarItem()` — creates a status bar element (bottom right); returns `HTMLElement`
+- `this.addRibbonIcon(icon, title, callback)` — adds a ribbon icon (left sidebar)
 - `window.setInterval` / `window.clearInterval` — used directly (not `this.registerInterval`) so the plugin can track the ID and clear it manually in `onunload()`
 
 ---
@@ -321,3 +324,4 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-18 | Added configurable `completedFetchMode` (lookback/incremental/all); chunked fetching for 3-month API window; rate limit Notice on 429; updated SyncState, settings table, and module docs |
 | 2026-03-18 | Added `bun test` unit tests for `renderer.ts` (29 tests); added `test` script to package.json |
 | 2026-03-18 | Added GitHub PR template; updated contributing.md and README.md to reflect completedMode enum and bun test |
+| 2026-03-18 | Added status bar indicator (clickable, status dot, hover state), ribbon sync icon, styles.css; updated Obsidian API patterns, architecture tree, release workflow |

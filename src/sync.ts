@@ -54,7 +54,7 @@ export async function runSync(
     projects = await client.getProjects()
   } catch (err) {
     console.error('[TodoistVault] Failed to fetch projects:', err)
-    return syncState
+    throw err
   }
 
   // Apply project filter

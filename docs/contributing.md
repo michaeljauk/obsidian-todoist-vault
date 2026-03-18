@@ -21,7 +21,7 @@ bun run format     # prettier --write
 bun test           # unit tests (renderer.ts)
 ```
 
-To load the plugin in Obsidian, symlink (or copy) `main.js` + `manifest.json` into your vault:
+To load the plugin in Obsidian, symlink (or copy) `main.js`, `manifest.json`, and `styles.css` into your vault:
 
 ```
 <your-vault>/.obsidian/plugins/todoist-vault-sync/
@@ -88,12 +88,13 @@ The main export is `renderProject(project, sections, tasks, ...settings)`. If yo
 
 | File | Role |
 |------|------|
-| `src/main.ts` | Plugin lifecycle, command, interval |
+| `src/main.ts` | Plugin lifecycle, commands, ribbon icon, status bar, intervals |
 | `src/api.ts` | Todoist REST client (fetch adapter + pagination) |
 | `src/settings.ts` | Settings interface, defaults, UI |
 | `src/sync.ts` | Sync orchestrator — reads vault, calls API, writes files |
 | `src/renderer.ts` | Pure markdown renderer |
 | `src/parser.ts` | Parses existing files to extract checkbox states |
+| `styles.css` | Status bar hover state, status dot colors, pulse animation |
 | `main.js` | Build artifact — never edit by hand |
 
 See [`AGENTS.md`](../AGENTS.md) for the full architecture reference.
