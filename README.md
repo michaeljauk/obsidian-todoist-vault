@@ -83,11 +83,23 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Show completed tasks | off | Render completed tasks as `- [x]` |
+| Completed tasks mode | `hide` | How to handle completed tasks — see below |
+| Completed fetch mode | `lookback` | Which completed tasks to fetch — `lookback` (N days back), `incremental` (delta since last sync), `all` (full history) |
+| Completed lookback days | `30` | Days to look back when fetch mode is `lookback` |
 | Show metadata badges | on | Show due date, priority, recurrence, and labels below each task |
 | Show task descriptions | on | Render task descriptions as collapsible callouts |
 | Task deep links | off | Wrap task titles in links that open the task in Todoist |
 | Bidirectional sync | off | Checking a checkbox in Obsidian closes the task in Todoist on next sync |
+
+**Completed tasks mode** options:
+
+| Mode | Behaviour |
+|------|-----------|
+| `hide` | Completed tasks are not shown |
+| `inline` | Completed tasks appear as `- [x]` in each section alongside active tasks |
+| `archive-section` | Completed tasks are appended under a `## Completed` heading at the bottom of the file |
+| `archive-file` | Completed tasks are written to a separate `<Project> Archive.md` file in the same folder |
+| `archive-folder` | Completed tasks are written to a separate file inside a dedicated archive subfolder |
 
 ### Frontmatter
 
@@ -167,6 +179,7 @@ bun run dev          # watch mode
 bun run typecheck    # tsc --noEmit
 bun run lint         # eslint
 bun run format       # prettier
+bun test             # unit tests (renderer.ts)
 ```
 
 To test in a vault, copy (or symlink) `main.js`, `manifest.json`, and `styles.css` into:
