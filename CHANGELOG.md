@@ -9,6 +9,9 @@ All notable changes to Todoist Vault Sync are documented here.
 - **Completed task archiving** — configurable `completedMode` setting with five options: `hide`, `inline`, `archive-section`, `archive-file`, and `archive-folder`. Switching modes automatically cleans up previously written archive files.
 - **Configurable fetch strategy** — `completedFetchMode` setting: `lookback` (N days back), `incremental` (delta since last sync, cached per project), or `all` (full history in 3-month chunks).
 - **Rate limit notice** — an Obsidian notice is shown when the Todoist API returns HTTP 429 during a completed task fetch; active tasks continue to sync normally.
+- **Status bar indicator** — shows sync status text ("synced Xm ago", "syncing…", "sync failed") with a colored dot (green = idle, pulsing blue = syncing, red = error, gray = waiting). Click to trigger a manual sync.
+- **Ribbon sync icon** — `refresh-cw` icon in the left ribbon for quick manual sync access.
+- **Plugin stylesheet** — new `styles.css` with status bar hover state, status dot colors, and pulse animation.
 
 ### Fixed
 

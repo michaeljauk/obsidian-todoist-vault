@@ -26,6 +26,8 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 - **🔗 Task deep links** — wrap task titles in links that open directly in Todoist
 - **↔️ Bidirectional sync** — check a task in Obsidian → it closes in Todoist on next sync
 - **⏱️ Configurable sync interval** — default 15 min, plus a manual "Sync now" command
+- **🔄 Status bar indicator** — live sync status with colored dot (green/pulsing/red); click to trigger manual sync
+- **🔁 Ribbon sync icon** — quick-access refresh icon in the left ribbon
 - **🔍 Project filter** — whitelist specific projects or sync everything
 - **✏️ Filename prefix/suffix** — avoid collisions with other notes in your vault
 - **✅ Completed tasks** — optionally render completed tasks as `- [x]`
@@ -43,8 +45,8 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 
 ### Manual
 
-1. Download `main.js` and `manifest.json` from the [latest release](https://github.com/michaeljauk/obsidian-todoist-vault/releases)
-2. Copy both files into `<vault>/.obsidian/plugins/todoist-vault-sync/`
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/michaeljauk/obsidian-todoist-vault/releases)
+2. Copy all three files into `<vault>/.obsidian/plugins/todoist-vault-sync/`
 3. Enable the plugin in **Settings → Community plugins**
 
 ---
@@ -167,7 +169,7 @@ bun run lint         # eslint
 bun run format       # prettier
 ```
 
-To test in a vault, copy (or symlink) `main.js` and `manifest.json` into:
+To test in a vault, copy (or symlink) `main.js`, `manifest.json`, and `styles.css` into:
 
 ```
 <your-vault>/.obsidian/plugins/todoist-vault-sync/
