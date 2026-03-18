@@ -295,6 +295,7 @@ Scopes map to source modules:
 | `build` | `esbuild.config.mjs`, `tsconfig.json` |
 | `deps` | `package.json`, `bun.lock` |
 | `docs` | `README.md`, `AGENTS.md`, `docs/` |
+| `release` | version bumps, `CHANGELOG.md`, `manifest.json`, `versions.json` |
 
 Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate files on prefix change`, `docs(readme): fix bidirectional sync description`.
 
