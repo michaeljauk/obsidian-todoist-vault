@@ -130,7 +130,9 @@ export async function runSync(
 
       const tasks = [...activeTasks, ...completedTasks]
 
-      const filename = `${settings.filePrefix}${sanitizeFilename(project.name)}${settings.fileSuffix}.md`
+      const filename = `${settings.filePrefix}${sanitizeFilename(project.name)}${
+        settings.fileSuffix
+      }.md`
       const filePath = normalizePath(`${folderPath}/${filename}`)
       // If prefix/suffix changed, find the old file by todoist_project_id in frontmatter
       let existingFile = app.vault.getFileByPath(filePath)
