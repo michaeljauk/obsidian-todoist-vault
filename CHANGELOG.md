@@ -8,6 +8,10 @@ All notable changes to Todoist Vault Sync are documented here.
 
 - Settings descriptions and status bar aria-label now use sentence case as required by Obsidian plugin guidelines.
 
+### Contributors
+
+- Michael Jauk ([@michaeljauk](https://github.com/michaeljauk))
+
 ## [1.2.0] — 2026-03-18
 
 ### Added

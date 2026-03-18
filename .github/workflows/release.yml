@@ -38,11 +38,28 @@ jobs:
       - name: Extract release notes
         run: |
           VERSION="${{ github.ref_name }}"
+
+          # Extract this version's section from CHANGELOG.md
           awk "
             /^## \[$VERSION\]/ { found=1; next }
             found && /^## \[/ { exit }
             found { print }
           " CHANGELOG.md > release_notes.md
+
+          # Auto-generate contributors from git log since previous tag
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${VERSION}$" | head -1)
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..${VERSION}"
+          else
+            RANGE="${VERSION}"
+          fi
+          CONTRIBUTORS=$(git log "$RANGE" --format='%aN' | sort -u | sed 's/^/- /')
+          if [ -n "$CONTRIBUTORS" ]; then
+            echo "" >> release_notes.md
+            echo "### Contributors" >> release_notes.md
+            echo "$CONTRIBUTORS" >> release_notes.md
+          fi
+
           echo "" >> release_notes.md
           echo "---" >> release_notes.md
           echo "**Manual installation:**" >> release_notes.md
