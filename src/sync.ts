@@ -62,8 +62,7 @@ export async function runSync(
   const filtered =
     settings.projectFilter.length > 0
       ? projects.filter(
-          (p) =>
-            settings.projectFilter.includes(p.name) || settings.projectFilter.includes(p.id),
+          (p) => settings.projectFilter.includes(p.name) || settings.projectFilter.includes(p.id),
         )
       : projects
 

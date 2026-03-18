@@ -223,7 +223,9 @@ export function renderProject(
     if (completedTasks.length > 0) {
       projectLines.push('## Completed')
       projectLines.push('')
-      projectLines.push(...buildTaskLines(completedTasks, sections, options, '_No completed tasks._', 3))
+      projectLines.push(
+        ...buildTaskLines(completedTasks, sections, options, '_No completed tasks._', 3),
+      )
     }
   } else {
     // 'archive-file' | 'archive-folder'
