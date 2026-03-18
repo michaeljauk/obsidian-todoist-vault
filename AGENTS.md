@@ -64,9 +64,9 @@ Wraps `@doist/todoist-api-typescript` with an **Obsidian-compatible fetch adapte
 
 Obsidian's security sandbox blocks the browser's native `fetch` from reaching external URLs. The `obsidianFetch` adapter uses `requestUrl` (Obsidian's allowed HTTP method) to proxy all SDK requests. All methods use cursor-based pagination and collect all pages before returning.
 
-Methods: `getProjects()`, `getSections(projectId)`, `getTasks(projectId)`, `getCompletedTasks(projectId)`, `closeTask(taskId)`, `reopenTask(taskId)`.
+Methods: `getProjects()`, `getSections(projectId)`, `getTasks(projectId)`, `getCompletedTasks(projectId, since, until)`, `closeTask(taskId)`, `reopenTask(taskId)`.
 
-**Important:** `getTasks` returns only **active** (non-completed) tasks. Completed tasks require a separate call to `getCompletedTasks`, which wraps `getCompletedTasksByCompletionDate` with a full-history date range (`since: 2007-01-01`, `until: now`). `sync.ts` calls both in parallel when `completedMode !== 'hide'` and merges the results before rendering.
+**Important:** `getTasks` returns only **active** (non-completed) tasks. Completed tasks require a separate `getCompletedTasks(projectId, since, until)` call, which paginates `getCompletedTasksByCompletionDate` and collects all pages. The `since`/`until` window is determined by `sync.ts` based on `completedFetchMode`. The Todoist API enforces a ~3-month window per request; `sync.ts` handles longer ranges by chunking via `fetchCompletedChunked`.
 
 ### `parser.ts`
 
@@ -93,17 +93,25 @@ export interface RenderResult {
 
 ### `sync.ts`
 
-Exports `runSync(app, settings, syncState): Promise<SyncState>`. `SyncState` holds the set of task IDs that were completed at the end of the previous sync; it is persisted in plugin data by `main.ts` and threaded through every sync cycle to detect real user-driven checkbox changes vs. stale state.
+Exports `runSync(app, settings, syncState): Promise<SyncState>`. `SyncState` has three fields, all persisted in `data.json` by `main.ts`:
+- `completedTaskIds`: task IDs completed at the end of the last sync — used to detect user-driven checkbox changes
+- `lastCompletedFetchAt`: ISO timestamp of last completed-task fetch — used in `incremental` mode
+- `completedTasksCache`: per-project accumulated `Task[]` — used in `incremental` mode so the archive stays complete even though each sync only fetches the delta
 
 Orchestrates one full sync cycle:
 1. Ensure sync folder exists; for `archive-folder` mode also ensure the archive subfolder exists
 2. Fetch all projects, apply `projectFilter`
-3. For each project, fetch sections and tasks in parallel (`Promise.all`)
-4. If `bidirectionalSync`: read existing file, parse states, compare against `syncState` to close/reopen only genuinely user-changed tasks (reopen only when `completedMode !== 'hide'`)
-5. Render project via `renderProject()` → `RenderResult`
-6. Write main project file (create or modify)
-7. If `result.archiveContent !== null`, write the archive file (create or modify) at the archive path
-8. Return updated `SyncState` (completed task IDs after bidirectional resolution)
+3. For each project, fetch sections and active tasks in parallel (`Promise.all`)
+4. If `completedMode !== 'hide'`, fetch completed tasks according to `completedFetchMode`:
+   - `lookback`: fetch `completedLookbackDays` days back from now
+   - `incremental`: fetch delta since `lastCompletedFetchAt`, merge into per-project cache
+   - `all`: fetch entire history in 3-month chunks via `fetchCompletedChunked`
+   - On HTTP 429, shows an Obsidian `Notice` and continues with active tasks only
+5. If `bidirectionalSync`: read existing file, parse states, compare against `syncState` to close/reopen only genuinely user-changed tasks (reopen only when `completedMode !== 'hide'`)
+6. Render project via `renderProject()` → `RenderResult`
+7. Write main project file (create or modify)
+8. If `result.archiveContent !== null`, write the archive file (create or modify) at the archive path
+9. Return updated `SyncState`
 
 **Archive path logic:**
 - `archive-file`: `{syncFolder}/{filePrefix}{projectName}{archiveFileSuffix}.md`
@@ -174,6 +182,8 @@ Defined in `settings.ts`. **When adding a new setting, update all three places i
 | `syncIntervalMinutes` | number | `15` |
 | `projectFilter` | string[] | `[]` |
 | `completedMode` | `CompletedMode` | `'hide'` |
+| `completedFetchMode` | `CompletedFetchMode` | `'lookback'` |
+| `completedLookbackDays` | number | `30` |
 | `archiveFileSuffix` | string | `' Archive'` |
 | `archiveFolder` | string | `'archive'` |
 | `bidirectionalSync` | boolean | `false` |
@@ -185,6 +195,8 @@ Defined in `settings.ts`. **When adding a new setting, update all three places i
 | `frontmatter` | FrontmatterSettings | see code |
 
 `CompletedMode` values: `'hide'` · `'inline'` · `'archive-section'` · `'archive-file'` · `'archive-folder'`
+
+`CompletedFetchMode` values: `'lookback'` · `'incremental'` · `'all'`
 
 **Migration:** users upgrading from v1.x (which had `includeCompleted: boolean`) are automatically migrated on first load — `true` → `'inline'`, `false` → `'hide'`.
 
@@ -306,3 +318,4 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-17 | Fixed README version badge (1.0.1 → 1.0.3); fixed contributing.md plugin folder path (obsidian-todoist-vault → todoist-vault-sync) |
 | 2026-03-18 | Replaced `includeCompleted` with `completedMode` (5 options); added archive file/folder/section support; updated renderer.ts and sync.ts sections |
 | 2026-03-18 | Fixed completed task fetching: `getTasks` returns active tasks only; added `getCompletedTasks` using `getCompletedTasksByCompletionDate` API |
+| 2026-03-18 | Added configurable `completedFetchMode` (lookback/incremental/all); chunked fetching for 3-month API window; rate limit Notice on 429; updated SyncState, settings table, and module docs |
