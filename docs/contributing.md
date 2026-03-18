@@ -80,7 +80,7 @@ Then use `this.plugin.settings.myNewSetting` in `sync.ts` or `renderer.ts` as ne
 
 All markdown generation lives in `src/renderer.ts`. It is a **pure module** — no Obsidian API imports, no side effects. Keep it that way.
 
-The main export is `renderProject(project, sections, tasks, ...settings)`. If your feature depends on a new setting, add it to the function signature and thread it through the call site in `src/sync.ts`.
+The main export is `renderProject(project, sections, tasks, completedMode, fm, options: RenderOptions)`. Display-related settings (`taskDeepLinks`, `showVisibleMeta`, `showDescription`) are grouped in the `RenderOptions` object — add new display flags there. Thread the updated options through the call site in `src/sync.ts`.
 
 ---
 
