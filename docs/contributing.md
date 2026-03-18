@@ -18,6 +18,7 @@ bun run dev        # watch mode — rebuilds main.js on every save
 bun run typecheck  # type-check without emitting
 bun run lint       # eslint
 bun run format     # prettier --write
+bun test           # unit tests (renderer.ts)
 ```
 
 To load the plugin in Obsidian, symlink (or copy) `main.js` + `manifest.json` into your vault:
@@ -26,7 +27,9 @@ To load the plugin in Obsidian, symlink (or copy) `main.js` + `manifest.json` in
 <your-vault>/.obsidian/plugins/todoist-vault-sync/
 ```
 
-After each rebuild, go to **Settings → Community plugins → Reload plugins** in Obsidian. There are no automated tests — verification is manual.
+After each rebuild, go to **Settings → Community plugins → Reload plugins** in Obsidian.
+
+`renderer.ts` has unit tests (`bun test`). Modules that depend on the Obsidian API (`sync.ts`, `api.ts`, `main.ts`) are verified manually via vault.
 
 ## Commit Convention
 

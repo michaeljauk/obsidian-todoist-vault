@@ -320,3 +320,4 @@ Examples: `feat(settings): add priority filter`, `fix(sync): prevent duplicate f
 | 2026-03-18 | Fixed completed task fetching: `getTasks` returns active tasks only; added `getCompletedTasks` using `getCompletedTasksByCompletionDate` API |
 | 2026-03-18 | Added configurable `completedFetchMode` (lookback/incremental/all); chunked fetching for 3-month API window; rate limit Notice on 429; updated SyncState, settings table, and module docs |
 | 2026-03-18 | Added `bun test` unit tests for `renderer.ts` (29 tests); added `test` script to package.json |
+| 2026-03-18 | Added GitHub PR template; updated contributing.md and README.md to reflect completedMode enum and bun test |
