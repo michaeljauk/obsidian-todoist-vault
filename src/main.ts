@@ -16,6 +16,7 @@ export default class TodoistVaultPlugin extends Plugin {
   private isSyncing = false
   private statusBarItem: HTMLElement | null = null
   private statusBarMsg: HTMLElement | null = null
+  private statusBarDot: HTMLElement | null = null
   private lastSyncedAt: Date | null = null
 
   async onload() {
@@ -68,6 +69,8 @@ export default class TodoistVaultPlugin extends Plugin {
       },
     })
     this.statusBarMsg = btn
+    this.statusBarDot = btn.createEl('span', { cls: 'todoist-vault-status-dot' })
+    this.statusBarDot.dataset.status = 'waiting'
     btn.addEventListener('click', () => {
       this.runSync().catch((err: unknown) => {
         console.error('Manual sync failed:', err)
@@ -113,18 +116,30 @@ export default class TodoistVaultPlugin extends Plugin {
 
   private updateStatusBar(state: 'idle' | 'syncing' | 'error') {
     if (!this.statusBarMsg) return
+    // Update text — clear first to preserve the dot element
+    const dot = this.statusBarDot
+    let text: string
+    let dotStatus: string
     if (state === 'syncing') {
-      this.statusBarMsg.textContent = '↻ Todoist syncing…'
+      text = 'Todoist syncing…'
+      dotStatus = 'syncing'
     } else if (state === 'error') {
-      this.statusBarMsg.textContent = '✗ Todoist sync failed'
+      text = 'Todoist sync failed'
+      dotStatus = 'error'
+    } else if (this.lastSyncedAt) {
+      const mins = Math.round((Date.now() - this.lastSyncedAt.getTime()) / 60_000)
+      const label = mins < 1 ? 'just now' : `${mins}m ago`
+      text = `Todoist synced ${label}`
+      dotStatus = 'idle'
     } else {
-      if (this.lastSyncedAt) {
-        const mins = Math.round((Date.now() - this.lastSyncedAt.getTime()) / 60_000)
-        const label = mins < 1 ? 'just now' : `${mins}m ago`
-        this.statusBarMsg.textContent = `✓ Todoist synced ${label}`
-      } else {
-        this.statusBarMsg.textContent = 'Todoist sync'
-      }
+      text = 'Todoist sync'
+      dotStatus = 'waiting'
+    }
+    // Set text then re-append dot so it stays after the text
+    this.statusBarMsg.textContent = text
+    if (dot) {
+      dot.dataset.status = dotStatus
+      this.statusBarMsg.appendChild(dot)
     }
   }
 

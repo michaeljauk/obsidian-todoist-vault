@@ -5,3 +5,38 @@
     background-color: var(--background-modifier-hover);
   }
 }
+
+.todoist-vault-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.todoist-vault-status-dot {
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.todoist-vault-status-dot[data-status="idle"] {
+  background-color: var(--color-green);
+}
+
+.todoist-vault-status-dot[data-status="syncing"] {
+  background-color: var(--interactive-accent);
+  animation: todoist-pulse 1s ease-in-out infinite;
+}
+
+.todoist-vault-status-dot[data-status="error"] {
+  background-color: var(--color-red);
+}
+
+.todoist-vault-status-dot[data-status="waiting"] {
+  background-color: var(--text-muted);
+}
+
+@keyframes todoist-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
