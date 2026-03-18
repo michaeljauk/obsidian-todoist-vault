@@ -59,7 +59,7 @@ export default class TodoistVaultPlugin extends Plugin {
 
     // Status bar indicator — clickable to trigger sync
     this.statusBarItem = this.addStatusBarItem()
-    const anchor = this.statusBarItem.createEl('a', {
+    const btn = this.statusBarItem.createEl('span', {
       cls: 'todoist-vault-status-bar',
       attr: {
         role: 'button',
@@ -67,8 +67,8 @@ export default class TodoistVaultPlugin extends Plugin {
         tabindex: '0',
       },
     })
-    this.statusBarMsg = anchor
-    anchor.addEventListener('click', () => {
+    this.statusBarMsg = btn
+    btn.addEventListener('click', () => {
       this.runSync().catch((err: unknown) => {
         console.error('Manual sync failed:', err)
       })
