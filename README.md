@@ -30,7 +30,7 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 - **🔁 Ribbon sync icon** — quick-access refresh icon in the left ribbon
 - **🔍 Project filter** — whitelist specific projects or sync everything
 - **✏️ Filename prefix/suffix** — avoid collisions with other notes in your vault
-- **✅ Completed tasks** — optionally render completed tasks as `- [x]`
+- **✅ Completed tasks** — five modes: hide, show inline, archive section, archive file, or archive folder; configurable fetch strategy (lookback, incremental, or full history)
 - **📋 Rich frontmatter** — project URL, color, tags, favorites, shared status, and custom YAML fields
 
 ---
@@ -84,8 +84,10 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | Completed tasks mode | `hide` | How to handle completed tasks — see below |
-| Completed fetch mode | `lookback` | Which completed tasks to fetch — `lookback` (N days back), `incremental` (delta since last sync), `all` (full history) |
-| Completed lookback days | `30` | Days to look back when fetch mode is `lookback` |
+| Completed fetch mode | `lookback` | Which completed tasks to fetch — `lookback` (N days back), `incremental` (delta since last sync, cached per project), `all` (full history up to 2 years, chunked) |
+| Lookback window | `30` | Days to look back when fetch mode is `lookback` (max 89 — Todoist API limit). Also used as the bootstrap window for `incremental` mode. |
+| Archive file suffix | ` Archive` | Suffix added to archive filenames when mode is `archive-file` (e.g. `Work Archive.md`) |
+| Archive folder name | `archive` | Subfolder inside the sync folder used when mode is `archive-folder` |
 | Show metadata badges | on | Show due date, priority, recurrence, and labels below each task |
 | Show task descriptions | on | Render task descriptions as collapsible callouts |
 | Task deep links | off | Wrap task titles in links that open the task in Todoist |
@@ -208,4 +210,4 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 **Made with ❤️ by [Michael Jauk](https://github.com/michaeljauk)**
 
-*Not officially affiliated with Todoist or Obsidian.*
+*Not officially affiliated with Todoist or Obsidian. Desktop only (Obsidian mobile is not supported).*
