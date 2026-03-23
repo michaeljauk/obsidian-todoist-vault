@@ -5,7 +5,7 @@
     "": {
       "name": "obsidian-todoist-vault",
       "dependencies": {
-        "@doist/todoist-api-typescript": "7.1.1",
+        "@doist/todoist-api-typescript": "7.2.0",
       },
       "devDependencies": {
         "@commitlint/cli": "^20.5.0",
@@ -71,7 +71,7 @@
 
     "@conventional-changelog/git-client": ["@conventional-changelog/git-client@2.6.0", "", { "dependencies": { "@simple-libs/child-process-utils": "^1.0.0", "@simple-libs/stream-utils": "^1.2.0", "semver": "^7.5.2" }, "peerDependencies": { "conventional-commits-filter": "^5.0.0", "conventional-commits-parser": "^6.3.0" }, "optionalPeers": ["conventional-commits-filter", "conventional-commits-parser"] }, "sha512-T+uPDciKf0/ioNNDpMGc8FDsehJClZP0yR3Q5MN6wE/Y/1QZ7F+80OgznnTCOlMEG4AV0LvH2UJi3C/nBnaBUg=="],
 
-    "@doist/todoist-api-typescript": ["@doist/todoist-api-typescript@7.1.1", "", { "dependencies": { "camelcase": "6.3.0", "emoji-regex": "10.6.0", "form-data": "4.0.5", "ts-custom-error": "^3.2.0", "undici": "^7.16.0", "uuid": "11.1.0", "zod": "4.3.6" }, "peerDependencies": { "type-fest": "^4.12.0" } }, "sha512-lOmBtjmdAC6fmJ5wZBXSimXE9x5HgAzEHf/m4qDDpDXpMfgG94bUuEASzSz9BnduvkJGhUgId0h9nQ2TLaPbpQ=="],
+    "@doist/todoist-api-typescript": ["@doist/todoist-api-typescript@7.2.0", "", { "dependencies": { "camelcase": "6.3.0", "emoji-regex": "10.6.0", "form-data": "4.0.5", "ts-custom-error": "^3.2.0", "undici": "^7.16.0", "uuid": "11.1.0", "zod": "4.3.6" }, "peerDependencies": { "type-fest": "^4.12.0" } }, "sha512-JdTzh/p3bh3utAwRdNi9RpYv5ECaz656ieGLfmUVa6OD9hu1VUuRTe2xkRMVxzdMUHCELyfF0IjQ0DF5Cr9UHA=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.27.4", "", { "os": "aix", "cpu": "ppc64" }, "sha512-cQPwL2mp2nSmHHJlCyoXgHGhbEPMrEEU5xhkcy3Hs/O7nGZqEpZ2sUtLaL9MORLtDfRvVl2/3PAuEkYZH0Ty8Q=="],
 
