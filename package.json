@@ -31,7 +31,7 @@
   "author": "Michael Jauk",
   "license": "MIT",
   "dependencies": {
-    "@doist/todoist-api-typescript": "7.1.1"
+    "@doist/todoist-api-typescript": "7.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
