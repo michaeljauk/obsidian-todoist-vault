@@ -46,7 +46,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-obsidianmd": "^0.1.9",
     "husky": "^9.1.7",
-    "obsidian": "~1.12.3",
+    "obsidian": "~1.13.0",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3"
   }
