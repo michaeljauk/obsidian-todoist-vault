@@ -1,73 +1,78 @@
 # Todoist Vault Sync
 
+An Obsidian plugin that syncs your [Todoist](https://todoist.com) projects and tasks to real Markdown
+files in your vault. Unofficial, community-maintained.
+
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/michaeljauk)
 
-An Obsidian community plugin that syncs your Todoist projects and tasks to **real markdown files** in your vault.
-
-![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-purple) ![Version](https://img.shields.io/github/manifest-json/v/michaeljauk/obsidian-todoist-vault) ![License](https://img.shields.io/badge/license-MIT-green) ![Min Obsidian](https://img.shields.io/badge/Obsidian-1.4.0%2B-blueviolet)
-
-Unlike query-based plugins, this writes actual `.md` files so they:
-
-- Work offline once synced
-- Appear in search results and backlinks
-- Are queryable with [Dataview](https://blacksmithgu.github.io/obsidian-dataview/)
-- Are indexed by [Smart Connections](https://smartconnections.app/) alongside your notes
-- Sync seamlessly across any vault sync solution (iCloud, Obsidian Sync, Syncthing, Dropbox, git — your choice)
+[![CI](https://github.com/michaeljauk/obsidian-todoist-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/michaeljauk/obsidian-todoist-vault/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/github/manifest-json/v/michaeljauk/obsidian-todoist-vault)](https://github.com/michaeljauk/obsidian-todoist-vault/releases)
+[![Obsidian 1.4.0+](https://img.shields.io/badge/Obsidian-1.4.0%2B-blueviolet)](https://obsidian.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
 
-## 🚀 Features
+## Why
 
-- **📁 One file per project** — each Todoist project becomes a dedicated `.md` file
-- **🗂️ Sections as headings** — sections become `##` headings; unsectioned tasks go under `## Inbox`
-- **🔀 Subtask nesting** — subtasks rendered as indented nested list items
-- **🏷️ Rich metadata badges** — due date, priority, recurrence, and labels shown inline below each task
-- **📝 Task descriptions** — rendered as collapsible callout blocks
-- **🔗 Task deep links** — wrap task titles in links that open directly in Todoist
-- **↔️ Bidirectional sync** — check a task in Obsidian → it closes in Todoist on next sync
-- **⏱️ Configurable sync interval** — default 15 min, plus a manual "Sync now" command
-- **🔄 Status bar indicator** — live sync status with colored dot (green/pulsing/red); click to trigger manual sync
-- **🔁 Ribbon sync icon** — quick-access refresh icon in the left ribbon
-- **🔍 Project filter** — whitelist specific projects or sync everything
-- **✏️ Filename prefix/suffix** — avoid collisions with other notes in your vault
-- **✅ Completed tasks** — five modes: hide, show inline, archive section, archive file, or archive folder; configurable fetch strategy (lookback, incremental, or full history)
-- **📋 Rich frontmatter** — project URL, color, tags, favorites, shared status, and custom YAML fields
+Query-based Todoist plugins show your tasks in Obsidian, but the tasks are not in your files. This
+plugin writes actual `.md` files instead, so your tasks:
 
----
+- work offline after a sync
+- appear in search results and backlinks
+- can be queried with [Dataview](https://blacksmithgu.github.io/obsidian-dataview/)
+- get indexed by [Smart Connections](https://smartconnections.app/) together with your notes
+- sync with any vault sync method (iCloud, Obsidian Sync, Syncthing, Dropbox, git)
 
-## 📦 Installation
+Typical use cases:
 
-### From Community Plugins (recommended)
+- Link tasks from project notes and daily notes
+- Let an AI agent that reads your vault see your open tasks
+- Keep a Markdown archive of completed tasks
 
-1. Open Obsidian → **Settings → Community plugins → Browse**
-2. Search for **Todoist Vault Sync**
-3. Install and enable
+## Features
 
-### Manual
+- **One file per project.** Each Todoist project becomes its own `.md` file.
+- **Sections as headings.** Sections become `##` headings. Tasks without a section go under `## Inbox`.
+- **Nested subtasks.** Subtasks appear as indented list items.
+- **Metadata badges.** Due date, priority, recurrence, and labels appear below each task.
+- **Task descriptions** appear as collapsible callouts.
+- **Deep links.** Task titles can link to the task in Todoist.
+- **Two-way checkbox sync.** Check a task in Obsidian, and the next sync closes it in Todoist.
+- **Sync interval.** Default 15 minutes, plus a manual "Sync now" command.
+- **Status bar indicator.** A coloured dot shows the sync state (green, pulsing, red). Click it to sync.
+- **Ribbon icon** for a manual sync.
+- **Project filter.** Sync all projects, or only the ones you list.
+- **Filename prefix and suffix** prevent collisions with other notes.
+- **Completed tasks.** Five modes: hide, show inline, archive section, archive file, or archive
+  folder. Three fetch strategies: lookback, incremental, or full history.
+- **Frontmatter.** Project URL, colour, tags, favourite and shared status, and your own YAML fields.
 
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/michaeljauk/obsidian-todoist-vault/releases)
-2. Copy all three files into `<vault>/.obsidian/plugins/todoist-vault-sync/`
-3. Enable the plugin in **Settings → Community plugins**
+Desktop only. Obsidian mobile is not supported.
 
----
+## Installation
 
-## ⚙️ Setup
+The plugin is not in the Obsidian community plugin directory. Install it by hand:
 
-1. Get your API token: Todoist → **Settings → Integrations → Developer → API token**
-2. Open plugin settings → paste token → configure sync folder and interval
-3. Run **Todoist Vault Sync: Sync now** from the command palette for an immediate sync
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/michaeljauk/obsidian-todoist-vault/releases).
+2. Copy the three files into `<vault>/.obsidian/plugins/todoist-vault-sync/`.
+3. Enable the plugin in **Settings → Community plugins**.
 
-> **Security:** Your API token is stored unencrypted in your vault's plugin data directory (`.obsidian/plugins/todoist-vault-sync/data.json`). Protect your vault accordingly.
+## Setup
 
----
+1. Get your API token in Todoist: **Settings → Integrations → Developer → API token**.
+2. Open the plugin settings, paste the token, and set the sync folder and interval.
+3. To sync at once, run **Todoist Vault Sync: Sync now** from the command palette.
 
-## 🛠️ Settings
+> **Security:** The plugin stores your API token unencrypted in the plugin data file
+> (`.obsidian/plugins/todoist-vault-sync/data.json`). Protect your vault accordingly.
+
+## Settings
 
 ### Connection
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| API Token | — | Your Todoist API token |
+| API Token | _(none)_ | Your Todoist API token |
 
 ### Sync
 
@@ -83,9 +88,9 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Completed tasks mode | `hide` | How to handle completed tasks — see below |
-| Completed fetch mode | `lookback` | Which completed tasks to fetch — `lookback` (N days back), `incremental` (delta since last sync, cached per project), `all` (full history up to 2 years, chunked) |
-| Lookback window | `30` | Days to look back when fetch mode is `lookback` (max 89 — Todoist API limit). Also used as the bootstrap window for `incremental` mode. |
+| Completed tasks mode | `hide` | What to do with completed tasks (see below) |
+| Completed fetch mode | `lookback` | Which completed tasks to fetch: `lookback` (N days back), `incremental` (changes since the last sync, cached per project), `all` (full history up to 2 years, in chunks) |
+| Lookback window | `30` | Days to look back when fetch mode is `lookback` (max 89, a Todoist API limit). Also used as the bootstrap window for `incremental` mode. |
 | Archive file suffix | ` Archive` | Suffix added to archive filenames when mode is `archive-file` (e.g. `Work Archive.md`) |
 | Archive folder name | `archive` | Subfolder inside the sync folder used when mode is `archive-folder` |
 | Show metadata badges | on | Show due date, priority, recurrence, and labels below each task |
@@ -114,9 +119,7 @@ Unlike query-based plugins, this writes actual `.md` files so they:
 | Include is_shared | off | Add `todoist_is_shared` to frontmatter |
 | Custom fields | _(empty)_ | Raw YAML lines appended to frontmatter, one per line |
 
----
-
-## 📄 File Format
+## File format
 
 Each synced project file looks like this:
 
@@ -146,9 +149,9 @@ tags:
   - [ ] Subtask <!-- id:jkl012 -->
 ```
 
-### Priority Mapping
+### Priority mapping
 
-Todoist's API uses an inverted priority scale (4 = highest). The plugin converts to human-readable labels:
+The Todoist API uses an inverted priority scale (4 = highest). The plugin converts it to readable labels:
 
 | Todoist `priority` | Label | Badge |
 |--------------------|-------|-------|
@@ -157,26 +160,26 @@ Todoist's API uses an inverted priority scale (4 = highest). The plugin converts
 | 2 | p3 | `🟡 p3` |
 | 1 | p4 (default) | _(no badge)_ |
 
----
+## Two-way sync
 
-## ↔️ Bidirectional Sync
+Turn on **Bidirectional sync** in the settings. On the next sync, every task that you checked in
+Obsidian closes in Todoist. Every task that you unchecked reopens, if the **Completed tasks** mode is
+not `hide`.
 
-Enable **Bidirectional sync** in settings. On the next sync cycle, any task you check in Obsidian will be closed in Todoist, and any task you uncheck (when **Completed tasks** mode is not `hide`) will be reopened.
-
-> **Note:** Only checkbox state is synced back to Todoist. Task content, due dates, and priorities are not written back — Todoist is the source of truth for task content.
+> **Note:** Only the checkbox state goes back to Todoist. Content, due dates, and priorities do not.
+> Todoist stays the source of truth for task content.
 >
-> **Note:** Reopening a task by unchecking it only works when **Completed tasks** mode is not `hide` — otherwise completed tasks aren't present in the file.
+> **Note:** A task reopens on uncheck only if the **Completed tasks** mode is not `hide`. With
+> `hide`, completed tasks are not in the file.
 
----
-
-## 👩‍💻 Development
+## Development
 
 ```bash
 git clone https://github.com/michaeljauk/obsidian-todoist-vault
 cd obsidian-todoist-vault
 bun install
 
-bun run build        # production build → main.js
+bun run build        # production build: main.js
 bun run dev          # watch mode
 bun run typecheck    # tsc --noEmit
 bun run lint         # eslint
@@ -184,30 +187,31 @@ bun run format       # prettier
 bun test             # unit tests (renderer.ts)
 ```
 
-To test in a vault, copy (or symlink) `main.js`, `manifest.json`, and `styles.css` into:
+To test in a vault, copy or symlink `main.js`, `manifest.json`, and `styles.css` into:
 
 ```
 <your-vault>/.obsidian/plugins/todoist-vault-sync/
 ```
 
-Then reload plugins in Obsidian (**Settings → Community plugins → reload**).
+Then reload the plugins in Obsidian (**Settings → Community plugins → reload**).
 
-See [`docs/contributing.md`](docs/contributing.md) for how to add new settings or render features.
+[`docs/contributing.md`](docs/contributing.md) explains how to add settings or render features.
 
----
+## Contributing
 
-## 🤝 Contributing
+Issues and pull requests are welcome on
+[GitHub](https://github.com/michaeljauk/obsidian-todoist-vault).
 
-Contributions are welcome! Open an issue or submit a pull request on [GitHub](https://github.com/michaeljauk/obsidian-todoist-vault).
+## Disclaimer
 
----
+Unofficial and not affiliated with Doist (Todoist) or Obsidian. "Todoist" and "Obsidian" are
+trademarks of their owners.
 
-## 📝 License
+## Support
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+Built by [Michael Jauk](https://github.com/michaeljauk). If this saves you time, consider
+[buying me a coffee](https://buymeacoffee.com/michaeljauk).
 
----
+## License
 
-**Made with ❤️ by [Michael Jauk](https://github.com/michaeljauk)**
-
-*Not officially affiliated with Todoist or Obsidian. Desktop only (Obsidian mobile is not supported).*
+[MIT](./LICENSE) © Michael Jauk
